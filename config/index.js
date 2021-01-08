@@ -15,7 +15,7 @@ module.exports = {
         target: 'http://192.168.101.121:8088',
         changeOrigin:true,
         pathRewrite: {
-          '^/api': '' //重写接口
+          '^/api': '/' //重写接口
         },
       }
     },
