@@ -49,7 +49,6 @@
                 icon="el-icon-circle-plus"
                 class="confirm"
                 type="text"
-                :disabled="materielList.length == 0"
                 @click="openDialog('putInWare')"
               ></el-button>
             </div>
@@ -82,7 +81,7 @@
             size="mini"
             stripe
             :data="materielList"
-            border
+           
             :max-height="conHeight"
             :header-cell-style="{ 'background-color': '#e3e3e3' }"
           >
@@ -119,7 +118,7 @@
               </template>
             </el-table-column>
 
-            <el-table-column label="操作">
+            <el-table-column label="操作" width="125px">
               <template slot-scope="scope">
                 <el-tooltip
                   class="edit-tooltip"
@@ -578,6 +577,10 @@ export default {
        if (!this.orderId) {
         return;
       }
+      if (this.materielList.length == 0) {
+        this.$message.error("订单下没有要入库的物料!!!");
+        return
+      }
       let param = {
         orderId: this.orderId,
       };
@@ -863,9 +866,9 @@ export default {
   padding: 1px 0;
 }
 
-.edit-tooltip {
-  float: left;
-}
+// .edit-tooltip {
+//   float: left;
+// }
 
 .save-btn {
   float: right;

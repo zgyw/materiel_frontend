@@ -79,7 +79,7 @@
           <el-table-column prop="price" label="单价(元)"></el-table-column>
           <el-table-column prop="quantity" label="库存数量"></el-table-column>
           <el-table-column prop="remarks" label="描述(规格)"></el-table-column>
-          <el-table-column label="操作" width="180">
+          <el-table-column label="操作" width="125px">
             <template slot-scope="scope">
               <el-tooltip
                 class="item"

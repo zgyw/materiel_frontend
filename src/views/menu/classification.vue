@@ -7,24 +7,25 @@
             type="success"
             size="mini"
             icon="el-icon-plus"
-            @click="showDialog('add',1)"
-          >新增分组</el-button>
+            @click="showDialog('add')"
+            >新增分组</el-button
+          >
           <el-button
             type="warning"
             size="mini"
-            v-show="selectedFno=='group'"
             icon="el-icon-edit"
             @click="showDialog('edit')"
             :disabled="!isGroupSelect"
-          >编辑</el-button>
+            >编辑</el-button
+          >
           <el-button
             type="danger"
             size="mini"
-            v-show="selectedFno=='group'"
             @click="showDialog('delete')"
             icon="el-icon-delete"
             :disabled="!isGroupSelect"
-          >删除</el-button>
+            >删除</el-button
+          >
         </div>
 
         <div class="tree-box">
@@ -32,179 +33,223 @@
             :data="groupList"
             ref="treeBox"
             node-key="id"
-            :props="{label:'name',isLeaf:'leaf',children:'childrenClassify'}"
-            :show-checkbox="isCheck"
+            :props="{
+              label: 'name',
+            }"
+            :default-expanded-keys="checkDefault"
             :check-on-click-node="true"
             :highlight-current="true"
             @node-click="nodeClick"
           >
-            <div class="tree_item" slot-scope="{node}">
-              <i :class="{'el-icon-folder-opened': node.level==1}"></i>
-              <span :title="node.label" class="has_ellipsis">{{ node.label }}</span>
+            <div class="tree_item" slot-scope="{ node }">
+              <i :class="{ 'el-icon-folder-opened': node.level == 1 }"></i>
+              <span :title="node.label" class="has_ellipsis">{{
+                node.label
+              }}</span>
             </div>
           </el-tree>
         </div>
       </div>
 
       <div class="right-con inner">
-        <div class="title-box" v-show="selectedFno=='group'">
-          <div class="btn-box fr" v-show="!isEdit">
+        <div class="title-box">
+          <div class="btn-box fr">
             <el-button
               type="warning"
               size="mini"
               class="confirm"
               icon="el-icon-edit"
               :disabled="!selectGroup.id"
-              @click="changeEdit(true)"
-            >编辑</el-button>
-          </div>
-          <div class="btn-box fr" v-show="isEdit">
-            <el-button size="mini" type="primary" @click="saveVariate">保存</el-button>
-            <el-button size="mini" @click="changeEdit(false)">取消</el-button>
+              @click="openDialog('add')"
+              >添加分类</el-button
+            >
           </div>
         </div>
-        <div class="var-list" ref="conBox" v-show="selectedFno=='group'">
-          <el-table stripe v-show="!isEdit" :data="varList" border :max-height="conHeight">
-            <el-table-column prop="classifyId" label="分类编号"></el-table-column>
-            <el-table-column prop="classifyName" label="分类名称"></el-table-column>
-            <el-table-column prop="classifyDesc" label="分类描述" width></el-table-column>
-          </el-table>
-          <el-form
-            :style="{'max-height':conHeight+'px','overflow-y':'auto'}"
-            ref="variateForm"
-            v-show="isEdit"
-            label-width=".5rem"
+        <div class="var-list" ref="conBox">
+          <el-table
+            :header-cell-style="{ 'background-color': '#e3e3e3' }"
+            stripe
+            :data="classifyList"
+            border
+            size="mini"
+            :max-height="conHeight"
           >
-            <el-form-item v-for="(item,index) in varList" :key="item.id" style="margin-top:1rem">
-              <el-select
-                filterable
-                :disabled="!isEdit"
-                v-model="item.gatewayId"
-                style="width:20%"
-                placeholder="分类编号"
-              >
-                <el-option
-                  v-for="gateway in gatewayOptions"
-                  :key="gateway.gatewayId+''+item.id"
-                  :label="gateway.name"
-                  :value="gateway.gatewayId"
-                ></el-option>
-              </el-select>
-              <el-select
-                v-model="item.equipmentId"
-                style="width:20%;margin-left:5px;"
-                placeholder="分类名称"
-                :disabled="!isEdit"
-                @change="getAllVarByEquip(item,variatesList)"
-                filterable
-              >
-                <el-option
-                  v-for="equip in equips"
-                  :key="equip.equipmentId+''+item.id"
-                  :label="equip.name"
-                  :value="equip.equipmentId"
-                ></el-option>
-              </el-select>
-              <el-input
-                :disabled="!isEdit"
-                style="width:20%;margin-left:5px;"
-                v-model="item.name"
-                placeholder="分类描述"
-              ></el-input>
-              <el-button
-                v-show="isEdit"
-                size="mini"
-                style="margin-left:10px;"
-                type="danger"
-                icon="el-icon-delete"
-                @click="deleteVariate(index,item.id)"
-              >删除</el-button>
-            </el-form-item>
-            <el-form-item label>
-              <el-button
-                v-show="isEdit"
-                size="mini"
-                type="success"
-                style
-                icon="el-icon-plus"
-                @click="addVariate"
-              >添加</el-button>
-            </el-form-item>
-          </el-form>
+            <el-table-column
+              type="index"
+              label="分类编号"
+              width="100"
+            ></el-table-column>
+            <el-table-column prop="name" label="分类名称"></el-table-column>
+            <el-table-column
+              prop="remarks"
+              label="分类描述"
+              width
+            ></el-table-column>
+            <el-table-column label="操作" width="200">
+              <template slot-scope="scope">
+                <el-tooltip
+                  class="edit-tooltip"
+                  effect="dark"
+                  offset="-20"
+                  content="详情"
+                  placement="top-start"
+                >
+                  <el-button
+                    icon="el-icon-edit"
+                    size="mini"
+                    type="warning"
+                    @click="openDialog('edit', scope.row)"
+                  ></el-button>
+                </el-tooltip>
+
+                <el-tooltip
+                  class="item"
+                  effect="dark"
+                  offset="-20"
+                  content="删除"
+                  placement="top-start"
+                >
+                  <el-button
+                    icon="el-icon-delete"
+                    size="mini"
+                    class="del"
+                    type="danger"
+                    @click="openDialog('delete', scope.row)"
+                  ></el-button>
+                </el-tooltip>
+              </template>
+            </el-table-column>
+          </el-table>
         </div>
       </div>
     </div>
 
     <el-dialog :title="dialogTitle" :visible.sync="addVisible" width="500px">
-      <el-form ref="groupForm" :model="groupObj" label-width="120px">
+      <el-form
+        ref="groupForm"
+        :model="groupObj"
+        label-width="120px"
+        class="group-form"
+      >
         <el-form-item
           prop="name"
           label="分组名称："
-          :rules="[{ required: true, message: '请输入分组名称', trigger: 'blur' }]"
+          :rules="[
+            { required: true, message: '请输入分组名称', trigger: 'blur' },
+          ]"
         >
-          <el-input style="width:80%;" v-model.trim="groupObj.name"></el-input>
+          <el-input style="width: 80%" v-model.trim="groupObj.name"></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer">
-        <el-button @click="closeDialog">取 消</el-button>
         <el-button type="primary" @click="handleGroup">确 定</el-button>
+        <el-button @click="closeDialog">取 消</el-button>
       </div>
     </el-dialog>
 
     <el-dialog title="提示" :visible.sync="confirmVisible" width="370px">
       <div class="tips-con">
         确认删除&nbsp;
-        <mark>{{selectGroup.name}}&nbsp;</mark>吗？
+        <span style="color: DarkOrange; font-size: 18px"
+          >{{ selectGroup.name }} &nbsp;</span
+        >吗？
       </div>
       <div slot="footer">
-        <el-button @click="closeDialog">取 消</el-button>
         <el-button type="primary" @click="handleGroup">确 定</el-button>
+        <el-button @click="closeDialog">取 消</el-button>
+      </div>
+    </el-dialog>
+
+    <el-dialog
+      :title="dialogTitle"
+      :visible.sync="addClassVisible"
+      width="500px"
+    >
+      <el-form
+        ref="classForm"
+        :model="classForm"
+        label-width="120px"
+        class="group-form"
+      >
+        <el-form-item
+          prop="name"
+          label="分类名称:"
+          :rules="[
+            { required: true, message: '请输入分类名称', trigger: 'blur' },
+          ]"
+        >
+          <el-input style="width: 80%" v-model.trim="classForm.name"></el-input>
+        </el-form-item>
+        <el-form-item prop="remarks" label="分类描述:">
+          <el-input
+            type="textarea"
+            style="width: 80%"
+            v-model.trim="classForm.remarks"
+          ></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button type="primary" @click="handleClassify">确 定</el-button>
+        <el-button @click="closeDialog">取 消</el-button>
+      </div>
+    </el-dialog>
+    <!-- 删除弹窗 -->
+    <el-dialog
+      :visible.sync="isDialogDeleMateriel"
+      :close-on-click-modal="false"
+      width="500px"
+      title="删除物料"
+    >
+      <div style="margin-bottom: 20px">
+        <span
+          >确定删除分类
+          <span style="color: DarkOrange; font-size: 18px"
+            >{{ classifyName }} </span
+          >吗？</span
+        >
+      </div>
+      <div style="text-align: right">
+        <el-button type="primary" @click="handleClassify">确 定</el-button>
+        <el-button @click="isDialogDeleMateriel = false">取 消</el-button>
       </div>
     </el-dialog>
   </div>
 </template>
 
 <script>
-
 export default {
-  components: {
-  },
+  components: {},
   data() {
     return {
-      selectedFno: "group",
       conHeight: 0,
-      groupList: [{name: '电容', children: null}, {name: '电阻', children: null}, {name: 'mcu', children: null}, {name: '二极管', children: null}],
-      varList: [{classifyId: '8', classifyName: '贴片电容', classifyDesc: '有好几种封装，例如：0402, 0603'},
-                {classifyId: '1', classifyName: '钽电容', classifyDesc: '有好几种封装，例如：0402, 0603'},
-                {classifyId: '4', classifyName: '陶瓷电容', classifyDesc: '有好几种封装，例如：0402, 0603'},
-                {classifyId: '6', classifyName: '电解电容', classifyDesc: '有好几种封装，例如：0402, 0603'},
-                {classifyId: '2', classifyName: '可调电容', classifyDesc: '有好几种封装，例如：0402, 0603'},
-                {classifyId: '5', classifyName: '安规电容', classifyDesc: '有好几种封装，例如：0402, 0603'},
-                {classifyId: '9', classifyName: '超级电容', classifyDesc: '有好几种封装，例如：0402, 0603'},
-      ],
+      checkDefault: [], //默认选中数组
+      groupList: [], //分组集合
+      classifyList: [], //分类集合
       addVisible: false,
+      addClassVisible: false,
       confirmVisible: false,
-      isCheck: false,
+      isDialogDeleMateriel: false,
+      classifyName: "",
       isEdit: false,
       selectGroup: {},
       isGroupSelect: false,
       gatewayOptions: [],
-      dialogTitle: "新建分组",
+      dialogTitle: "",
       equips: [],
       handleType: "",
+      //分组表单
       groupObj: {
+        id: "",
         name: "",
       },
-      delIds: [],
-      // 添加变量表达验证
-      variateRules: {
-        name: [{ required: true, message: "请输入变量名称", trigger: "blur" }],
-        code: [{ required: true, message: "请输入变量描述", trigger: "blur" }],
-        gatewayId: [{ required: true, message: "请选择网关", trigger: "blur" }],
-        equipmentId: [
-          { required: true, message: "请选择设备", trigger: "change" },
-        ],
+      //分类表单
+      classForm: {
+        id: "",
+        name: "",
+        remarks: "",
       },
+      type: "",
+      groupId: "", //分组id
       // 选中的变量
       selectedVariate: {},
       // 存储请求到的变量
@@ -213,21 +258,18 @@ export default {
       parentId: 0,
     };
   },
-  computed: {
-    watchSiteChange() {
-      return 1;
-    },
-  },
+  computed: {},
   watch: {
-    watchSiteChange() {
-      this.selectGroup = {};
-      this.getGroup();
+    checkDefault: function (newVal, oldVal) {
+      if (newVal) {
+        this.$nextTick(() => {
+          document.querySelector(".el-tree-node__content").click();
+        });
+      }
     },
   },
   created() {
-    if (this.watchSiteChange) {
-      this.getGroup();
-    }
+    this.getGroup();
   },
   mounted() {
     this.$nextTick(() => {
@@ -240,70 +282,27 @@ export default {
     });
   },
   methods: {
-    // 获取设备下所有变量
-    getAllVarByEquip(equip, variatesList) {
-    },
     nodeClick(group) {
-      this.isEdit = false;
-    //   this.getDetail(group);
-    //   console.log(group.name);
-    //   console.log(group.$treeNodeId);
       console.log(group);
-      this.selectGroup.id = group.$treeNodeId;
+      this.selectGroup.id = group.id;
       this.selectGroup.name = group.name;
-      group.show = !group.show;
-      this.selectedFno = "group";
       this.isGroupSelect = true;
-    },
-    // 获取变量详情
-    getDetail(group) {
-      group.show = !group.show;
-      this.selectedFno = "group";
-      this.selectGroup = group || {};
-      if (!group) {
-        this.varList = [];
-        return;
-      }
-      this.$http
-        .get("equipment/switchClassify/detail", { params: { id: group.id } })
-        .then((res) => {
-          if (res.data.code == 0) {
-            this.varList = res.data.data;
-            if (this.isEdit) {
-              this.varList.forEach((element) => {
-                this.getAllVarByEquip(element, this.variatesList);
-              });
-            }
-          }
-        });
-    },
-    // 选择变量
-    selectCode(index) {
-      this.varList[index].name = this.varList[index].children.find((el) => {
-        return el.code == this.varList[index].code;
-      }).name;
+      this.groupId = group.id;
+      this.getClassifyList();
     },
     // 改变编辑状态
     changeEdit(situ) {
       this.isEdit = situ;
       this.getDetail(this.selectGroup);
     },
-    // 保存变量
-    saveVariate() {
-    },
     // 显示dialog
-    showDialog(type, option) {
+    showDialog(type) {
       this.handleType = type;
       if (type == "add") {
-        this.dialogTitle = "新建分组";
+        this.dialogTitle = "新增分组";
         this.addVisible = true;
         this.groupObj.id = "";
         this.groupObj.name = "";
-        if (option == 1) {
-          this.parentId = 0;
-        } else if (option == 2) {
-          this.parentId = this.selectGroup.id;
-        }
       } else if (type == "edit") {
         this.dialogTitle = "编辑分组";
         this.addVisible = true;
@@ -313,16 +312,155 @@ export default {
         this.confirmVisible = true;
       }
       this.$nextTick(() => {
-        // this.$refs.groupForm.clearValidate();
+        this.$refs.groupForm.clearValidate();
       });
+    },
+    openDialog(type, row) {
+      this.type = type;
+      if (type == "add") {
+        this.dialogTitle = "新增分类";
+        this.addClassVisible = true;
+        this.classForm.name = "";
+        this.classForm.remarks = "";
+      } else if (type == "edit") {
+        console.log(row);
+        this.dialogTitle = "修改分类";
+        this.addClassVisible = true;
+        this.classForm.id = row.id;
+        this.classForm.name = row.name;
+        this.classForm.remarks = row.remarks;
+      } else if (type == "delete") {
+        this.classForm.id = row.id;
+        this.classifyName = row.name;
+        this.isDialogDeleMateriel = true;
+      }
+    },
+    // 操作分类
+    handleClassify() {
+      if (this.type == "add") {
+        this.addClassify();
+      } else if (this.type == "edit") {
+        this.updateClassify();
+      } else if (this.type == "delete") {
+        this.deleteClassify();
+      }
+    },
+    addClassify() {
+      this.$refs.classForm.validate((valid) => {
+        if (valid) {
+          let data = {
+            name: this.classForm.name,
+            remarks: this.classForm.remarks,
+            groupId: this.groupId,
+          };
+          this.$post("/classify/add", data)
+            .then((res) => {
+              if (res.code == 0) {
+                this.$notify({
+                  title: "成功",
+                  message: "分类新增成功",
+                  type: "success",
+                });
+                this.classForm.name = "";
+                this.classForm.remarks = "";
+                this.getClassifyList();
+              } else {
+                this.$notify.error(res.msg);
+              }
+            })
+            .catch((err) => {
+              this.$notify.error("分类新增失败");
+            });
+          this.closeDialog();
+        }
+      });
+    },
+    updateClassify() {
+      this.$refs.classForm.validate((valid) => {
+        if (valid) {
+          let data = {
+            id: this.classForm.id,
+            name: this.classForm.name,
+            remarks: this.classForm.remarks,
+            groupId: this.groupId,
+          };
+          this.$post("/classify/modify", data)
+            .then((res) => {
+              if (res.code == 0) {
+                this.$notify({
+                  title: "成功",
+                  message: "分类修改成功",
+                  type: "success",
+                });
+                this.classForm.id = "";
+                this.classForm.name = "";
+                this.classForm.remarks = "";
+                this.getClassifyList();
+              } else {
+                this.$notify.error(res.msg);
+              }
+            })
+            .catch((err) => {
+              this.$notify.error("分类修改失败");
+            });
+          this.closeDialog();
+        }
+      });
+    },
+    deleteClassify() {
+      let param = {
+        id: this.classForm.id,
+      };
+      this.$get("/classify/delete", param).then((res) => {
+        if (res.code == 0) {
+          this.$notify({
+            title: "成功",
+            message: "分类删除成功",
+            type: "success",
+          });
+          this.getClassifyList();
+        } else {
+          this.$notify.error(res.msg);
+        }
+      });
+      this.classForm.id = "";
+      this.classForm.name = "";
+      this.classForm.remarks = "";
+      this.classifyName = "";
+      this.closeDialog();
     },
     closeDialog() {
       this.addVisible = false;
       this.confirmVisible = false;
       this.handleType = "";
+      this.addClassVisible = false;
+      this.isDialogDeleMateriel = false;
+      this.type = "";
     },
     // 获取分组
     getGroup(flag) {
+      this.$get("/group/findAll", {}).then((res) => {
+        if (res.code == 0) {
+          this.groupList = res.data;
+          if (res.data.length > 0) {
+            this.checkDefault.push(res.data[0].id);
+            this.groupId = res.data[0].id;
+          }
+        }
+      });
+    },
+    getClassifyList() {
+      if (!this.groupId) {
+        return;
+      }
+      let param = {
+        id: this.groupId,
+      };
+      this.$get("/group/getClassify", param).then((res) => {
+        if (res.code == 0) {
+          this.classifyList = res.data;
+        }
+      });
     },
     // 操作分组
     handleGroup() {
@@ -336,34 +474,88 @@ export default {
     },
     // 添加分组
     addGroup() {
-        this.$refs.groupForm.validate((valid) => {
+      this.$refs.groupForm.validate((valid) => {
         if (valid) {
-            var newClassify = {name: '目录名', children: null};
-            newClassify.name = this.groupObj.name;
-            this.$set(this.groupList, this.groupList.length, newClassify);
+          let param = {
+            name: this.groupObj.name,
+          };
+          this.$post("/group/add", param)
+            .then((res) => {
+              if (res.code == 0) {
+                this.$notify({
+                  title: "成功",
+                  message: "分组新增成功",
+                  type: "success",
+                });
+                this.groupObj.name = "";
+                this.getGroup();
+              } else {
+                this.$notify.error(res.msg);
+              }
+            })
+            .catch((err) => {
+              this.$notify.error("新增分组失败");
+            });
         }
         this.closeDialog();
       });
     },
     // 修改分组
     updateGroup() {
-        if (this.groupObj.id > 0 && this.groupObj.id <= this.groupList.length) {
-            this.groupList[this.groupObj.id - 1].name = this.groupObj.name;
-            this.selectGroup.id = this.groupObj.id;
-            this.selectGroup.name = this.groupObj.name;
-        }
-        this.closeDialog();
+      if (!this.groupId) {
+        return;
+      }
+      let param = {
+        id: this.groupObj.id,
+        name: this.groupObj.name,
+      };
+      this.$post("/group/modify", param)
+        .then((res) => {
+          if (res.code == 0) {
+            this.$notify({
+              title: "成功",
+              message: "分组修改成功",
+              type: "success",
+            });
+            this.groupObj.id = "";
+            this.groupObj.name = "";
+            this.getGroup();
+            this.closeDialog();
+          } else {
+            this.$message.error(res.msg);
+          }
+        })
+        .catch((err) => {
+          this.$notify.error("修改分组失败");
+        });
     },
     // 删除分组
     deleteGroup() {
-        // console.log("删除操作");
-        // console.log(this.selectGroup);
-        // console.log(this.groupList);
-      if (this.selectGroup.id > 0 && this.selectGroup.id <= this.groupList.length) {
-            this.groupList.splice(this.selectGroup.id - 1, 1);
-        }
-        this.closeDialog();
-        // console.log(this.groupList);
+      if (!this.groupId) {
+        return;
+      }
+      let param = {
+        id: this.groupId,
+      };
+      this.$get("/group/delete", param)
+        .then((res) => {
+          if (res.code == 0) {
+            this.$notify({
+              title: "成功",
+              message: "删除成功",
+              type: "success",
+            });
+            this.groupObj.id = "";
+            this.groupObj.name = "";
+            this.getGroup();
+          } else {
+            this.$message.error(res.msg);
+          }
+        })
+        .catch((err) => {
+          this.$notify.error("删除分组失败");
+        });
+      this.closeDialog();
     },
     // 添加变量填写框
     addVariate() {
@@ -377,16 +569,15 @@ export default {
     },
     // 记录删除变量
     deleteVariate(index, id) {
-        console.log("delete index = " + index + " id = " + id);
+      console.log("delete index = " + index + " id = " + id);
     },
   },
 };
 </script>
 
 <style lang="less" scoped>
-
 @table-bgc: rgba(67, 92, 112); //表格背景色
-@board-title: #54657D;
+@board-title: #54657d;
 @table-border: #8fc7ba;
 
 .groups {
@@ -398,10 +589,10 @@ export default {
     bottom: 0;
     left: 0;
     right: 0;
-    box-shadow: 0 2px 4px 0 rgba(0,0,0,.1);
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
 
     .left-con {
-      box-shadow: 0 2px 4px 0 rgba(0,0,0,.1);
+      box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
       width: 230px;
       height: 100%;
 
@@ -435,7 +626,7 @@ export default {
       }
     }
     .right-con {
-        height: 100%;
+      height: 100%;
       position: absolute;
       top: 0;
       bottom: 10px;
@@ -459,8 +650,8 @@ export default {
         bottom: 0.5rem;
         padding: 10px;
         .el-button--mini {
-          padding-left: 5px !important;
-          padding-right: 5px !important;
+          // padding-left: 5px !important;
+          // padding-right: 5px !important;
         }
       }
     }
@@ -469,9 +660,6 @@ export default {
 .el-tree /deep/ .el-tree-node__content {
   height: 2rem;
 }
-// .el-tree /deep/ .is-current > .el-tree-node__content {
-//   background: #5b708b !important;
-// }
 
 .tree_item {
   display: flex;
@@ -487,14 +675,22 @@ export default {
   margin: 5px 5px;
 }
 
-.has_ellipsis{
-  display:block;
-  width:100%;
-  overflow:hidden;
+.has_ellipsis {
+  text-align: left;
+  display: block;
+  width: 100%;
+  overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  padding-left:5px;
+  padding-left: 5px;
 }
 
+.confirm {
+  float: right;
+}
+
+.group-form /deep/ .el-form-item__content {
+  text-align: left;
+}
 </style>
 

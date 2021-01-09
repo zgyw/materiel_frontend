@@ -49,8 +49,7 @@
                 icon="el-icon-remove"
                 class="confirm"
                 type="text"
-                :disabled="materielList.length == 0"
-                @click="openDialog('putInWare')"
+                @click="openDialog('checkoutWare')"
               ></el-button>
             </div>
           </el-tree>
@@ -66,12 +65,11 @@
             style="float: left; margin-top: 3px"
             >导出订单模板</el-button
           >
-          <!--  @click="importOrder(false)" -->
           <el-button
             type="primary"
             size="mini"
-           
             style="float: left; margin-top: 3px"
+            @click="openDialog('importFile')"
             >导入订单</el-button
           >
           <el-input
@@ -86,7 +84,7 @@
             type="primary"
             size="mini"
             icon="el-icon-finished"
-            :disabled="materielList.length == 0"
+            :disabled="ifTrue"
             @click="saveMaterielNum"
             >保存</el-button
           >
@@ -97,7 +95,6 @@
             size="mini"
             stripe
             :data="materielList"
-            border
             :max-height="conHeight"
             :header-cell-style="{ 'background-color': '#e3e3e3' }"
           >
@@ -134,7 +131,7 @@
               </template>
             </el-table-column>
 
-            <el-table-column label="操作">
+            <el-table-column label="操作" width="125px">
               <template slot-scope="scope">
                 <el-tooltip
                   class="edit-tooltip"
@@ -322,12 +319,12 @@
       </div>
     </el-dialog>
 
-    <!-- 订单入库 -->
+    <!-- 订单出库 -->
     <el-dialog
-      :visible.sync="putInWareDialog"
+      :visible.sync="checkOutWareDialog"
       :close-on-click-modal="false"
       width="500px"
-      title="订单入库"
+      title="订单出库"
     >
       <div style="margin-bottom: 20px">
         <span
@@ -335,13 +332,48 @@
           <span style="color: DarkOrange; font-size: 18px">{{
             selectGroup.name
           }}</span
-          >入库吗？</span
+          >出库吗？</span
         >
       </div>
       <div style="text-align: right">
-        <el-button type="primary" @click="putInWareOrder()">确 定</el-button>
-        <el-button @click="putInWareDialog = false">取 消</el-button>
+        <el-button type="primary" @click="checkOutWareOrder()">确 定</el-button>
+        <el-button @click="checkOutWareDialog = false">取 消</el-button>
       </div>
+    </el-dialog>
+    <!-- 上传文件 -->
+    <el-dialog
+      :visible.sync="isDialogImport"
+      :close-on-click-modal="false"
+      width="500px"
+      title="上传文件"
+      class="el-dialog__wrap"
+    >
+      <el-form :model="importForm" label-width="100px" class="form">
+        <el-form-item label="选择文件" prop="file" style="position: relative">
+          <el-upload
+            action
+            class="upload-demo"
+            :on-change="fileChangeT"
+            :show-file-list="false"
+            :auto-upload="false"
+            accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+          >
+            <el-button
+              slot="trigger"
+              size="small"
+              style="background-color: #dfe3e9"
+              >选择</el-button
+            >
+          </el-upload>
+          <span style="color: DarkOrange; font-size: 16px">{{
+            importForm.file.name
+          }}</span>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="importNewMaterial">确 定</el-button>
+        <el-button @click="isDialogImport = false">取 消</el-button>
+      </span>
     </el-dialog>
   </div>
 </template>
@@ -375,7 +407,11 @@ export default {
       outNums: [], //出库数量数组
       isDialogMaterielDeatil: false,
       isDialogDeleMateriel: false,
-      putInWareDialog: false,
+      checkOutWareDialog: false,
+      isDialogImport: false,
+      importForm: {
+        file: "",
+      },
       //物料表单
       materielForm: {
         outNum: "",
@@ -394,14 +430,7 @@ export default {
       },
       materCode: "",
       materId: "",
-
-      delIds: [],
-      // 选中的变量
-      selectedVariate: {},
-      // 存储请求到的变量
-      variatesList: {},
-      // 父级分组id
-      parentId: 0,
+      ifTrue:false,
     };
   },
   computed: {},
@@ -413,6 +442,13 @@ export default {
         });
       }
     },
+    materielList: function (newVal) {
+      if (this.materielList.length == 0) {
+        this.ifTrue = true
+      } else{
+        this.ifTrue = false
+      }
+    }
   },
   mounted() {
     this.$nextTick(() => {
@@ -506,7 +542,7 @@ export default {
           let data = {
             name: this.orderForm.name,
             remarks: this.orderForm.remarks,
-            type: 1,
+            type: 2,
           };
           this.$post("/orderRecords/saveOrder", data)
             .then((res) => {
@@ -539,7 +575,7 @@ export default {
             id: this.orderForm.id,
             name: this.orderForm.name,
             remarks: this.orderForm.remarks,
-            type: 1,
+            type: 2,
           };
           this.$post("/orderRecords/modifyOrder", data)
             .then((res) => {
@@ -589,23 +625,27 @@ export default {
         }
       });
     },
-    //订单入库
-    putInWareOrder() {
+    //订单出库
+    checkOutWareOrder() {
       if (!this.orderId) {
+        return;
+      }
+      if (this.materielList.length == 0) {
+        this.$message.error("订单下没有要出库的物料!!!");
         return;
       }
       let param = {
         orderId: this.orderId,
       };
-      this.$post("/orderRecords/putInWare", param)
+      this.$post("/orderRecords/checkOutWare", param)
         .then((res) => {
           if (res.code == 0) {
             this.$notify({
               title: "成功",
-              message: "订单入库成功",
+              message: "订单出库成功",
               type: "success",
             });
-            this.putInWareDialog = false;
+            this.checkOutWareDialog = false;
             this.orderId = "";
             this.getOrderList();
           } else {
@@ -613,7 +653,7 @@ export default {
           }
         })
         .catch((err) => {
-          this.$message.error("加入订单失败");
+          this.$message.error("订单出库失败");
         });
     },
     // 查询订单列表
@@ -649,7 +689,17 @@ export default {
     },
     //获取到出库数量集合
     changeOutNum(row) {
-      console.log(row);
+      this.ifTrue = false
+      if (!row.outNum){
+        this.$message.error("出库数量不能为空");
+        this.ifTrue = true
+        return
+      }
+      if(row.outNum > row.quantity){
+        this.$message.error("出库数量不能大于库存");
+        this.ifTrue = true
+        return
+      }
       let records = {
         id: row.id,
         code: row.code,
@@ -663,7 +713,6 @@ export default {
         }
       }
       this.outNums.push(records);
-      console.log(this.outNums);
     },
 
     openDialog(type, row) {
@@ -677,8 +726,12 @@ export default {
           this.materCode = row.code;
           this.materId = row.id;
           break;
-        case "putInWare":
-          this.putInWareDialog = true;
+        case "checkoutWare":
+          this.checkOutWareDialog = true;
+          break;
+        case "importFile":
+          this.isDialogImport = true;
+          this.importForm.file = "";
           break;
       }
     },
@@ -759,8 +812,64 @@ export default {
     },
     //下载模板
     exportTemplate() {
-
-    }
+      this.$getFile("/orderRecords/exportTemplate")
+        .then((res) => {
+          console.log(res);
+          console.log(res.data);
+          const link = document.createElement("a");
+          const blob = new Blob([res.data], {
+            type:
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8",
+          });
+          link.style.display = "none";
+          link.href = window.URL.createObjectURL(blob);
+          let fileName = window.decodeURI(
+            res.headers["content-disposition"].match(/=(.*)$/)[1]
+          );
+          link.setAttribute("download", fileName);
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          this.$notify({
+            title: "成功",
+            message: "模板下载成功",
+            type: "success",
+          });
+        })
+        .catch((error) => {
+          this.$message.error("模板下载失败");
+        });
+    },
+    fileChangeT(file) {
+      this.importForm.file = file.raw;
+    },
+    importNewMaterial() {
+      if (!this.importForm.file) {
+        this.$message.error("请选择文件之后再进行导入!!!");
+        return;
+      }
+      const formDate = new FormData();
+      formDate.append("file", this.importForm.file);
+      this.$postForm("/orderRecords/importMateriel", formDate)
+        .then((res) => {
+          if (res.code == 0) {
+            this.$notify({
+              title: "成功",
+              message: "导入文件成功",
+              type: "success",
+            });
+            this.importForm.file = "";
+            // this.isDialogImport = false;
+          } else {
+            this.$message.error(res.msg);
+          }
+          this.getOrderList();
+        })
+        .catch((err) => {
+          this.$message.error("导入文件出错");
+        });
+        this.isDialogImport = false;
+    },
   },
   created() {
     this.getOrderList();
@@ -884,9 +993,9 @@ export default {
   padding: 1px 0;
 }
 
-.edit-tooltip {
-  float: left;
-}
+// .edit-tooltip {
+//   float: left;
+// }
 
 .save-btn {
   float: right;
@@ -902,6 +1011,17 @@ export default {
 
 .confirm {
   padding-right: 15px;
+}
+
+.form {
+  /deep/ .el-form-item__content {
+    text-align: left;
+    .upload-demo {
+      text-align: left;
+      float: left;
+      width: 65px;
+    }
+  }
 }
 </style>
 
