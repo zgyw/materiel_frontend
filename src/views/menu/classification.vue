@@ -8,7 +8,7 @@
             size="mini"
             icon="el-icon-plus"
             @click="showDialog('add')"
-            >新增分组</el-button
+            >新增大类</el-button
           >
           <el-button
             type="warning"
@@ -55,13 +55,13 @@
         <div class="title-box">
           <div class="btn-box fr">
             <el-button
-              type="warning"
+              type="success"
               size="mini"
               class="confirm"
-              icon="el-icon-edit"
+              icon="el-icon-plus"
               :disabled="!selectGroup.id"
               @click="openDialog('add')"
-              >添加分类</el-button
+              >添加子类</el-button
             >
           </div>
         </div>
@@ -76,13 +76,13 @@
           >
             <el-table-column
               type="index"
-              label="分类编号"
+              label="子类编号"
               width="100"
             ></el-table-column>
-            <el-table-column prop="name" label="分类名称"></el-table-column>
+            <el-table-column prop="name" label="子类名称"></el-table-column>
             <el-table-column
               prop="remarks"
-              label="分类描述"
+              label="子类描述"
               width
             ></el-table-column>
             <el-table-column label="操作" width="200">
@@ -133,9 +133,9 @@
       >
         <el-form-item
           prop="name"
-          label="分组名称："
+          label="大类名称："
           :rules="[
-            { required: true, message: '请输入分组名称', trigger: 'blur' },
+            { required: true, message: '请输入大类名称', trigger: 'blur' },
           ]"
         >
           <el-input style="width: 80%" v-model.trim="groupObj.name"></el-input>
@@ -173,14 +173,14 @@
       >
         <el-form-item
           prop="name"
-          label="分类名称:"
+          label="子类名称:"
           :rules="[
-            { required: true, message: '请输入分类名称', trigger: 'blur' },
+            { required: true, message: '请输入子类名称', trigger: 'blur' },
           ]"
         >
           <el-input style="width: 80%" v-model.trim="classForm.name"></el-input>
         </el-form-item>
-        <el-form-item prop="remarks" label="分类描述:">
+        <el-form-item prop="remarks" label="子类描述:">
           <el-input
             type="textarea"
             style="width: 80%"
@@ -202,7 +202,7 @@
     >
       <div style="margin-bottom: 20px">
         <span
-          >确定删除分类
+          >确定删除子类
           <span style="color: DarkOrange; font-size: 18px"
             >{{ classifyName }} </span
           >吗？</span
@@ -218,13 +218,12 @@
 
 <script>
 export default {
-  components: {},
   data() {
     return {
       conHeight: 0,
       checkDefault: [], //默认选中数组
-      groupList: [], //分组集合
-      classifyList: [], //分类集合
+      groupList: [], //大类集合
+      classifyList: [], //子类集合
       addVisible: false,
       addClassVisible: false,
       confirmVisible: false,
@@ -237,24 +236,24 @@ export default {
       dialogTitle: "",
       equips: [],
       handleType: "",
-      //分组表单
+      //大类表单
       groupObj: {
         id: "",
         name: "",
       },
-      //分类表单
+      //子类表单
       classForm: {
         id: "",
         name: "",
         remarks: "",
       },
       type: "",
-      groupId: "", //分组id
+      groupId: "", //大类id
       // 选中的变量
       selectedVariate: {},
       // 存储请求到的变量
       variatesList: {},
-      // 父级分组id
+      // 父级大类id
       parentId: 0,
     };
   },
@@ -283,7 +282,6 @@ export default {
   },
   methods: {
     nodeClick(group) {
-      console.log(group);
       this.selectGroup.id = group.id;
       this.selectGroup.name = group.name;
       this.isGroupSelect = true;
@@ -299,12 +297,12 @@ export default {
     showDialog(type) {
       this.handleType = type;
       if (type == "add") {
-        this.dialogTitle = "新增分组";
+        this.dialogTitle = "新增大类";
         this.addVisible = true;
         this.groupObj.id = "";
         this.groupObj.name = "";
       } else if (type == "edit") {
-        this.dialogTitle = "编辑分组";
+        this.dialogTitle = "编辑大类";
         this.addVisible = true;
         this.groupObj.id = this.selectGroup.id;
         this.groupObj.name = this.selectGroup.name;
@@ -318,13 +316,12 @@ export default {
     openDialog(type, row) {
       this.type = type;
       if (type == "add") {
-        this.dialogTitle = "新增分类";
+        this.dialogTitle = "新增子类";
         this.addClassVisible = true;
         this.classForm.name = "";
         this.classForm.remarks = "";
       } else if (type == "edit") {
-        console.log(row);
-        this.dialogTitle = "修改分类";
+        this.dialogTitle = "修改子类";
         this.addClassVisible = true;
         this.classForm.id = row.id;
         this.classForm.name = row.name;
@@ -335,7 +332,7 @@ export default {
         this.isDialogDeleMateriel = true;
       }
     },
-    // 操作分类
+    // 操作子类
     handleClassify() {
       if (this.type == "add") {
         this.addClassify();
@@ -358,7 +355,7 @@ export default {
               if (res.code == 0) {
                 this.$notify({
                   title: "成功",
-                  message: "分类新增成功",
+                  message: "子类新增成功",
                   type: "success",
                 });
                 this.classForm.name = "";
@@ -369,7 +366,7 @@ export default {
               }
             })
             .catch((err) => {
-              this.$notify.error("分类新增失败");
+              this.$notify.error("子类新增失败");
             });
           this.closeDialog();
         }
@@ -389,7 +386,7 @@ export default {
               if (res.code == 0) {
                 this.$notify({
                   title: "成功",
-                  message: "分类修改成功",
+                  message: "子类修改成功",
                   type: "success",
                 });
                 this.classForm.id = "";
@@ -401,7 +398,7 @@ export default {
               }
             })
             .catch((err) => {
-              this.$notify.error("分类修改失败");
+              this.$notify.error("子类修改失败");
             });
           this.closeDialog();
         }
@@ -415,7 +412,7 @@ export default {
         if (res.code == 0) {
           this.$notify({
             title: "成功",
-            message: "分类删除成功",
+            message: "子类删除成功",
             type: "success",
           });
           this.getClassifyList();
@@ -437,7 +434,7 @@ export default {
       this.isDialogDeleMateriel = false;
       this.type = "";
     },
-    // 获取分组
+    // 获取大类
     getGroup(flag) {
       this.$get("/group/findAll", {}).then((res) => {
         if (res.code == 0) {
@@ -462,7 +459,7 @@ export default {
         }
       });
     },
-    // 操作分组
+    // 操作大类
     handleGroup() {
       if (this.handleType == "add") {
         this.addGroup();
@@ -472,7 +469,7 @@ export default {
         this.deleteGroup();
       }
     },
-    // 添加分组
+    // 添加大类
     addGroup() {
       this.$refs.groupForm.validate((valid) => {
         if (valid) {
@@ -484,7 +481,7 @@ export default {
               if (res.code == 0) {
                 this.$notify({
                   title: "成功",
-                  message: "分组新增成功",
+                  message: "大类新增成功",
                   type: "success",
                 });
                 this.groupObj.name = "";
@@ -494,13 +491,13 @@ export default {
               }
             })
             .catch((err) => {
-              this.$notify.error("新增分组失败");
+              this.$notify.error("新增大类失败");
             });
         }
         this.closeDialog();
       });
     },
-    // 修改分组
+    // 修改大类
     updateGroup() {
       if (!this.groupId) {
         return;
@@ -514,7 +511,7 @@ export default {
           if (res.code == 0) {
             this.$notify({
               title: "成功",
-              message: "分组修改成功",
+              message: "大类修改成功",
               type: "success",
             });
             this.groupObj.id = "";
@@ -526,10 +523,10 @@ export default {
           }
         })
         .catch((err) => {
-          this.$notify.error("修改分组失败");
+          this.$notify.error("修改大类失败");
         });
     },
-    // 删除分组
+    // 删除大类
     deleteGroup() {
       if (!this.groupId) {
         return;
@@ -553,24 +550,11 @@ export default {
           }
         })
         .catch((err) => {
-          this.$notify.error("删除分组失败");
+          this.$notify.error("删除大类失败");
         });
       this.closeDialog();
     },
-    // 添加变量填写框
-    addVariate() {
-      this.varList.push({
-        name: "",
-        classifyId: this.selectGroup.id,
-        gatewayId: "",
-        equipmentId: "",
-        site: this.watchSiteChange,
-      });
-    },
-    // 记录删除变量
-    deleteVariate(index, id) {
-      console.log("delete index = " + index + " id = " + id);
-    },
+
   },
 };
 </script>

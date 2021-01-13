@@ -46,7 +46,7 @@
                 node.label
               }}</span>
               <el-button
-                icon="el-icon-circle-plus"
+                icon="el-icon-sell"
                 class="confirm"
                 type="text"
                 @click="openDialog('putInWare')"
@@ -58,6 +58,20 @@
 
       <div class="right-con inner">
         <div class="title-box">
+          <el-button
+            type="primary"
+            size="mini"
+            @click="exportModel"
+            style="float: left; margin-top: 3px"
+            >导出订单模板</el-button
+          >
+          <el-button
+            type="primary"
+            size="mini"
+            style="float: left; margin-top: 3px"
+            @click="openDialog('importFile')"
+            >导入订单</el-button
+          >
           <el-input
             v-model.trim="content"
             prefix-icon="el-icon-search"
@@ -79,9 +93,9 @@
           <el-table
             class="table-style"
             size="mini"
+            border
             stripe
             :data="materielList"
-           
             :max-height="conHeight"
             :header-cell-style="{ 'background-color': '#e3e3e3' }"
           >
@@ -306,7 +320,7 @@
       </div>
     </el-dialog>
 
-<!-- 订单入库 -->
+    <!-- 订单入库 -->
     <el-dialog
       :visible.sync="putInWareDialog"
       :close-on-click-modal="false"
@@ -316,8 +330,9 @@
       <div style="margin-bottom: 20px">
         <span
           >确定
-          <span style="color: DarkOrange; font-size: 18px"
-            >{{ selectGroup.name }}</span
+          <span style="color: DarkOrange; font-size: 18px">{{
+            selectGroup.name
+          }}</span
           >入库吗？</span
         >
       </div>
@@ -326,12 +341,45 @@
         <el-button @click="putInWareDialog = false">取 消</el-button>
       </div>
     </el-dialog>
+    <el-dialog
+      :visible.sync="isDialogImport"
+      :close-on-click-modal="false"
+      width="500px"
+      title="上传文件"
+      class="el-dialog__wrap"
+    >
+      <el-form :model="importForm" label-width="100px" class="form">
+        <el-form-item label="选择文件" prop="file" style="position: relative">
+          <el-upload
+            action
+            class="upload-demo"
+            :on-change="fileChangeT"
+            :show-file-list="false"
+            :auto-upload="false"
+            accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+          >
+            <el-button
+              slot="trigger"
+              size="small"
+              style="background-color: #dfe3e9"
+              >选择</el-button
+            >
+          </el-upload>
+          <span style="color: DarkOrange; font-size: 16px">{{
+            importForm.file.name
+          }}</span>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="importNewMaterial">确 定</el-button>
+        <el-button @click="isDialogImport = false">取 消</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 export default {
-  components: {},
   data() {
     return {
       labelPosition: "right",
@@ -358,7 +406,7 @@ export default {
       inNums: [], //入库数量数组
       isDialogMaterielDeatil: false,
       isDialogDeleMateriel: false,
-      putInWareDialog:false,
+      putInWareDialog: false,
       //物料表单
       materielForm: {
         inNum: "",
@@ -377,6 +425,10 @@ export default {
       },
       materCode: "",
       materId: "",
+      isDialogImport: false,
+      importForm: {
+        file: "",
+      },
 
       delIds: [],
       // 选中的变量
@@ -463,9 +515,9 @@ export default {
       } else if (type == "delete") {
         this.confirmVisible = true;
       }
-      this.$nextTick(() => {
-        this.$refs.orderForm.clearValidate();
-      });
+      // this.$nextTick(() => {
+      //   this.$refs.orderForm.clearValidate();
+      // });
     },
     closeDialog() {
       this.addVisible = false;
@@ -573,39 +625,42 @@ export default {
       });
     },
     //订单入库
-    putInWareOrder(){
-       if (!this.orderId) {
+    putInWareOrder() {
+      if (!this.orderId) {
         return;
       }
       if (this.materielList.length == 0) {
         this.$message.error("订单下没有要入库的物料!!!");
-        return
+        return;
       }
       let param = {
         orderId: this.orderId,
       };
-      this.$post("/orderRecords/putInWare",param).then(res => {
-        if (res.code == 0) {
-           this.$notify({
-            title: "成功",
-            message: "订单入库成功",
-            type: "success",
-          });
-          this.putInWareDialog = false;
-          this.orderId = ""
-          this.getOrderList()
-        } else{
-          this.$message.error(res.msg);
-        }
-      }).catch(err => {
-        this.$message.error("加入订单失败");
-      })
+      this.$post("/orderRecords/putInWare", param)
+        .then((res) => {
+          if (res.code == 0) {
+            this.$notify({
+              title: "成功",
+              message: "订单入库成功",
+              type: "success",
+            });
+            this.putInWareDialog = false;
+            this.orderId = "";
+            this.getOrderList();
+          } else {
+            this.$message.error(res.msg);
+          }
+        })
+        .catch((err) => {
+          this.$message.error("加入订单失败");
+        });
     },
     // 查询订单列表
     getOrderList() {
       let param = {
         type: 1,
       };
+      this.orderList = [];
       this.$get("/orderRecords/findByType", param).then((res) => {
         if (res.code == 0) {
           this.orderList = res.data;
@@ -626,8 +681,8 @@ export default {
         page: 0,
         size: 9999999,
       };
+      this.materielList = []
       this.$get("/materielRecords/findCurOrder", param).then((res) => {
-        console.log(res);
         if (res.code == 0) {
           this.materielList = res.data.materielRecords;
         }
@@ -635,7 +690,6 @@ export default {
     },
     //获取到入库数量集合
     changeInNum(row) {
-      console.log(row);
       let records = {
         id: row.id,
         code: row.code,
@@ -649,7 +703,6 @@ export default {
         }
       }
       this.inNums.push(records);
-      console.log(this.inNums);
     },
 
     openDialog(type, row) {
@@ -666,6 +719,9 @@ export default {
         case "putInWare":
           this.putInWareDialog = true;
           break;
+        case "importFile":
+          this.importForm.file = "";
+          this.isDialogImport = true;
       }
     },
     // 物料详情
@@ -742,6 +798,61 @@ export default {
         this.materId = "";
         this.getMaterielList();
       });
+    },
+    exportModel() {
+      this.$getFile("/materielLevel/exportTemplate")
+        .then((res) => {
+          const link = document.createElement("a");
+          const blob = new Blob([res.data], {
+            type:
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8",
+          });
+          link.style.display = "none";
+          link.href = window.URL.createObjectURL(blob);
+          let fileName = window.decodeURI(
+            res.headers["content-disposition"].match(/=(.*)$/)[1]
+          );
+          link.setAttribute("download", fileName);
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          this.$notify({
+            title: "成功",
+            message: "模板下载成功",
+            type: "success",
+          });
+        })
+        .catch((error) => {
+          this.$message.error("模板下载失败");
+        });
+    },
+    importNewMaterial() {
+      if (!this.importForm.file) {
+        this.$message.error("请选择文件之后再进行导入!!!");
+        return;
+      }
+      const formDate = new FormData();
+      formDate.append("file", this.importForm.file);
+      this.$postForm("/materielLevel/importMateriel", formDate)
+        .then((res) => {
+          if (res.code == 0) {
+            this.$notify({
+              title: "成功",
+              message: "导入订单成功",
+              type: "success",
+            });
+            this.importForm.file = "";
+            this.isDialogImport = false;
+            this.getOrderList();
+          } else {
+            this.$message.error(res.msg);
+          }
+        }).catch(err => {
+          this.$message.error("导入订单错误",);
+        })
+    },
+    fileChangeT(file) {
+      this.importForm.file = file.raw;
     },
   },
   created() {
@@ -862,14 +973,6 @@ export default {
   text-overflow: ellipsis;
 }
 
-.table-style {
-  padding: 1px 0;
-}
-
-// .edit-tooltip {
-//   float: left;
-// }
-
 .save-btn {
   float: right;
 }
@@ -884,6 +987,17 @@ export default {
 
 .confirm {
   padding-right: 15px;
+}
+
+.form {
+  /deep/ .el-form-item__content {
+    text-align: left;
+    .upload-demo {
+      text-align: left;
+      float: left;
+      width: 65px;
+    }
+  }
 }
 </style>
 

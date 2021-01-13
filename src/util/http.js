@@ -4,11 +4,9 @@ import qs from 'qs'
 
 
 axios.timeout = 60000
-axios.defaults.withCredentials=true
+axios.defaults.withCredentials = true
 axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded'
-if (process.env.NODE_ENV == 'development') {
-    axios.defaults.baseURL = '/api';
-}
+axios.defaults.baseURL = '/api';
 
 /**
  * 封装get方法
@@ -68,7 +66,8 @@ export function postForm(url, data) {
         axios.post(url, data, {
             headers: {
                 "Content-Type": "multipart/form-data"
-            }})
+            }
+        })
             .then(response => {
                 resolve(response.data);
             }, err => {

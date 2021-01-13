@@ -3,8 +3,8 @@
         <!-- 系统 Logo -->
         <el-aside class="header-logo" :width="asideWidth">
             <div @click="$router.push({ name: 'Home' })">
-                <a v-if="foldAside">{{language.adminCenter}}</a>
-                <a v-else>{{language.admin}}</a>
+                <a v-if="foldAside" style="font-size:18px;">{{language.adminCenter}}</a>
+                <a v-else style="font-size:18px">{{language.admin}}</a>
             </div>
         </el-aside>
 
@@ -189,6 +189,7 @@
 		font-weight: bold;
 		margin-bottom: 0;
 		cursor: pointer;
+		overflow: hidden !important;
 	}
 
 	.el-submenu .el-menu-item {

@@ -1,9 +1,9 @@
 <template>
   <div>
     <div class="header-line">
-      <el-button type="primary" style="float: right; margin-left: 10px" @click="openDialog">导入</el-button>
+      <!-- <el-button type="primary" style="float: right; margin-left: 10px" @click="openDialog">导入</el-button>
       <el-button type="primary" style="float: right; margin-left: 10px" @click="exportModel">导出模板</el-button>
-      <p>&nbsp</p>
+      <p>&nbsp</p> -->
     </div>
 
     <div class="rule-form">
@@ -324,19 +324,19 @@ export default {
       let param = {
         type: 1
       };
+      this.orderArr = [];
       this.$get("/orderRecords/findByType", param).then(res => {
         if (res.code == 0) {
           this.orderArr = res.data;
           if (res.data.length > 0) {
             this.materielForm.orderId = res.data[0].id;
           }
-        } else {
-          this.orderArr = [];
         }
       });
     },
     // 得到分类集合
     getClassifyList() {
+      this.classificationOptions = [];
       this.$get("/classify/findAll").then(res => {
         if (res.code == 0) {
           for (let i = 0; i < res.data.length; i++) {
@@ -348,8 +348,6 @@ export default {
           if (res.data.length > 0) {
             this.materielForm.classifyId = res.data[0].id;
           }
-        } else {
-          this.classificationOptions = [];
         }
       });
     }
@@ -368,6 +366,7 @@ export default {
   // margin-bottom: 5px;
   background-color: #fff;
   box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+  padding-top: 60px;
 }
 .rule-form {
   background-color: #fff;

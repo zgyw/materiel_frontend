@@ -13,13 +13,67 @@
       </div>
 
       <!-- 表格 -->
+      <!--  -->
       <div class="record-table">
         <el-table
+          border
+          stripe
           :data="orderDate"
           :max-height="conHeight"
-          border
+          @expand-change="expandChange"
+          :expand-row-keys="expands"
+          :row-key="getRowkeys"
           :header-cell-style="{ 'background-color': '#e3e3e3' }"
         >
+          <el-table-column type="expand">
+            <el-table
+              class="table-style"
+              size="mini"
+              border
+              stripe
+              height="auto"
+              :data="materielList"
+              :max-height="conHeight"
+              :header-cell-style="{ 'background-color': '#e3e3e3' }"
+            >
+              <el-table-column
+                type="index"
+                label="序号"
+                width="50"
+              ></el-table-column>
+              <el-table-column
+                property="code"
+                label="物料编码"
+              ></el-table-column>
+              <el-table-column
+                property="name"
+                label="物料名称"
+              ></el-table-column>
+              <el-table-column
+                property="potting"
+                label="封装"
+              ></el-table-column>
+              <el-table-column property="model" label="型号"></el-table-column>
+              <el-table-column property="brand" label="品牌"></el-table-column>
+              <el-table-column
+                property="factoryModel"
+                label="厂家型号"
+              ></el-table-column>
+              <el-table-column property="price" label="单价"></el-table-column>
+              <el-table-column
+                property="remarks"
+                label="描述(规格)"
+              ></el-table-column>
+              <el-table-column
+                property="quantity"
+                label="库存数量"
+              ></el-table-column>
+              <el-table-column
+                label="出库数量"
+                property="outNum"
+              ></el-table-column>
+            </el-table>
+          </el-table-column>
           <el-table-column prop="name" label="订单名称"></el-table-column>
           <el-table-column prop="remarks" label="订单描述"></el-table-column>
           <el-table-column prop="outTime" label="出库时间"></el-table-column>
@@ -59,29 +113,38 @@
       </div>
 
       <el-dialog title="订单详情" :visible.sync="orderDetail" width="500px">
-      <el-form ref="orderForm" :model="orderForm" label-width="120px" class="order-form">
-        <el-form-item
-          prop="name"
-          label="订单名称:"
-          :rules="[
-            { required: true, message: '请输入订单名称', trigger: 'blur' },
-          ]"
+        <el-form
+          ref="orderForm"
+          :model="orderForm"
+          label-width="120px"
+          class="order-form"
         >
-          <el-input readonly style="width: 80%" v-model.trim="orderForm.name"></el-input>
-        </el-form-item>
-        <el-form-item prop="remarks" label="订单描述:">
-          <el-input
-          readonly
-            type="textarea"
-            style="width: 80%"
-            v-model.trim="orderForm.remarks"
-          ></el-input>
-        </el-form-item>
-        <el-form-item prop="remarks" label="出库时间:">
-          <span>{{orderForm.outTime}}</span>
-        </el-form-item>
-      </el-form>
-    </el-dialog>
+          <el-form-item
+            prop="name"
+            label="订单名称:"
+            :rules="[
+              { required: true, message: '请输入订单名称', trigger: 'blur' },
+            ]"
+          >
+            <el-input
+              readonly
+              style="width: 80%"
+              v-model.trim="orderForm.name"
+            ></el-input>
+          </el-form-item>
+          <el-form-item prop="remarks" label="订单描述:">
+            <el-input
+              readonly
+              type="textarea"
+              style="width: 80%"
+              v-model.trim="orderForm.remarks"
+            ></el-input>
+          </el-form-item>
+          <el-form-item prop="remarks" label="出库时间:">
+            <span>{{ orderForm.outTime }}</span>
+          </el-form-item>
+        </el-form>
+      </el-dialog>
     </div>
   </div>
 </template>
@@ -97,20 +160,18 @@ export default {
       currentPage: 1,
       total: 0, //总量
       content: "", //搜索框内容
-      orderForm:{
-        id:"",
-        name:"",
-        remarks:"",
-        inTime:""
+      orderForm: {
+        id: "",
+        name: "",
+        remarks: "",
+        inTime: "",
       },
-      orderDetail:false
+      orderDetail: false,
+      expands: [],
+      materielList:[]
     };
   },
-  computed: {
-    watchSiteChange() {
-      return 1;
-    },
-  },
+  computed: {},
   watch: {},
   mounted() {
     this.$nextTick(() => {
@@ -125,8 +186,8 @@ export default {
   methods: {
     // 分页大小改变
     handleSizeChange(val) {
-      this.currPageSize = val
-      this.getOrderList()
+      this.currPageSize = val;
+      this.getOrderList();
     },
     // 分页改变
     handleCurrentChange(val) {
@@ -134,37 +195,52 @@ export default {
       this.getOrderList();
     },
     //查询已完成入库订单
-    getOrderList(){
+    getOrderList() {
       let param = {
-        type:2,
-        status:1,
-        content:this.content,
-        page:this.currentPage-1,
-        size:this.currPageSize
-      }
-      this.$get("/orderRecords/pageList",param).then(res => {
+        type: 2,
+        status: 1,
+        content: this.content,
+        page: this.currentPage - 1,
+        size: this.currPageSize,
+      };
+      this.$get("/orderRecords/pageList", param).then((res) => {
         if (res.code == 0) {
           this.total = res.data.total;
           this.orderDate = res.data.orderRecords;
         }
-      })
+      });
     },
-    getOrderInfo(id){
+    getOrderInfo(id) {
       let param = {
-        id:id
-      }
-      this.$get("/orderRecords/detail",param).then(res => {
-        if (res.code == 0) {
-          this.orderForm = res.data;
-        }
-      }).catch(errr => {
-        this.$notity.error("")
-      })
+        id: id,
+      };
+      this.$get("/orderRecords/detail", param)
+        .then((res) => {
+          if (res.code == 0) {
+            this.orderForm = res.data;
+          }
+        })
+        .catch((errr) => {
+          this.$notity.error("");
+        });
     },
     openDialog(row) {
       this.orderDetail = true;
-      this.getOrderInfo(row.id)
-    }
+      this.getOrderInfo(row.id);
+    },
+    getRowkeys(row) {
+      return row.id;
+    },
+    expandChange(row, expandedRows) {
+      this.expands = [];
+      if (expandedRows.length) {
+        this.materielList = [];
+        if (row) {
+          this.expands.push(row.id);
+          this.materielList = row.materielRecords;
+        }
+      }
+    },
   },
   created() {
     this.getOrderList();
@@ -197,7 +273,7 @@ export default {
   text-align: left;
 }
 
-.order-form /deep/ .el-form-item__content{
+.order-form /deep/ .el-form-item__content {
   text-align: left;
 }
 </style>

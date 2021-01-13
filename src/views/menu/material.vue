@@ -59,6 +59,7 @@
           :data="materielDate"
           :max-height="conHeight"
           border
+          stripe
           @selection-change="handleSelectionChange"
           :header-cell-style="{ 'background-color': '#e3e3e3' }"
         >
@@ -169,6 +170,7 @@
       class="detai-dialog"
     >
       <el-form
+        class="materiel-form"
         :label-position="labelPosition"
         label-width="80px"
         :model="materielForm"
@@ -233,13 +235,38 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-form-item label="品牌:" prop="brand">
-          <el-input v-model="materielForm.brand"></el-input>
-        </el-form-item>
+        <el-row>
+          <div style="width: 50%; float: left">
+            <el-form-item label="品牌:" prop="brand">
+              <el-input v-model="materielForm.brand"></el-input>
+            </el-form-item>
 
-        <el-form-item label="网址:" prop="website">
-          <el-input v-model="materielForm.website"></el-input>
-        </el-form-item>
+            <el-form-item label="网址:" prop="website">
+              <el-input v-model="materielForm.website"></el-input>
+            </el-form-item>
+          </div>
+          <div style="width: 50%; float: right">
+            <el-form-item label="图片" prop="photo" class="inline-input-width">
+              <el-upload
+                class="avatar-uploader"
+                action
+                :on-change="fileChange"
+                :show-file-list="false"
+                :before-upload="beforeAvatarUpload"
+                :auto-upload="false"
+              >
+                <img
+                  v-if="imageUrl"
+                  :src="imageUrl"
+                  width="120"
+                  height="120"
+                  class="avatar"
+                />
+                <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+              </el-upload>
+            </el-form-item>
+          </div>
+        </el-row>
 
         <el-form-item label="描述:" prop="remarks">
           <el-input
@@ -283,19 +310,7 @@
 
 <script>
 export default {
-  components: {},
   data() {
-    // 数值验证
-    var checkNum = (rule, value, callback) => {
-      if (!value && value !== 0) {
-        return callback(new Error("数值不能为空"));
-      }
-      if (parseFloat(value) != value) {
-        callback(new Error("请输入数值"));
-      } else {
-        callback();
-      }
-    };
     return {
       dialogTitleAddToCart: "加入订单",
       classificationOptions: [], // 所有的器件类型数据集合
@@ -330,6 +345,7 @@ export default {
         website: "", //网址
         remarks: "", //备注
         price: "", //单价
+        photo: "", //图片地址
       },
       materielIds: [], //物料id数组
       materCode: "", //物料编码
@@ -343,16 +359,12 @@ export default {
           { required: true, message: "数量不能为空", trigger: "blur" },
         ],
       },
+      imageUrl: "", //图片
+      materielFile:"",//物料图片文件
     };
   },
-  computed: {
-    watchSiteChange() {
-      return 1;
-    },
-  },
-  watch: {
-    watchSiteChange() {},
-  },
+  computed: {},
+  watch: {},
   mounted() {
     this.$nextTick(() => {
       this.conHeight = this.$refs.conBox.offsetHeight - 55 - 55 - 36;
@@ -372,6 +384,8 @@ export default {
         classifyId: this.classifyId,
         content: this.content,
       };
+      this.totalMateriel = 0;
+      this.materielDate = [];
       this.$get("/materielLevel/pageList", param).then((res) => {
         if (res.code == 0) {
           this.totalMateriel = res.data.total;
@@ -381,6 +395,7 @@ export default {
     },
     // 得到分类集合
     getClassifyList() {
+      this.classificationOptions = [];
       this.$get("/classify/findAll").then((res) => {
         if (res.code == 0) {
           for (let i = 0; i < res.data.length; i++) {
@@ -417,8 +432,12 @@ export default {
           this.getOrderByType();
           break;
         case "materielOpen":
-          this.isDialogMaterielDeatil = true;
+          this.imageUrl = ""
           this.detailMeteriel(row.id);
+          this.isDialogMaterielDeatil = true;
+          if (row.photo) {
+            this.getPhoto(row.id);
+          }
           break;
         case "deleMateriel":
           this.isDialogDeleMateriel = true;
@@ -466,29 +485,45 @@ export default {
         }
       });
     },
+    getPhoto(id) {
+      let param = {
+        id: id,
+      };
+      this.$getFile("/materielLevel/getPhoto", param).then((res) => {
+        console.log(res);
+        this.imageUrl = window.URL.createObjectURL(res.data);
+      });
+    },
     //修改物料
     modifyMateriel(materielForm) {
       this.$refs[materielForm].validate((valid) => {
         if (valid) {
           if (isNaN(this.materielForm.quantity)) {
-            this.$message.error("数量只能是数值类型")
-            return
+            this.$message.error("数量只能是数值类型");
+            return;
           }
           let data = {
-            id:this.materielForm.id,
-            code:this.materielForm.code,
-            classifyId:this.materielForm.classifyId,
-            potting:this.materielForm.potting,
-            quantity:parseInt(this.materielForm.quantity),
-            model:this.materielForm.model,
-            brand:this.materielForm.brand,
-            supplier:this.materielForm.supplier,
-            website:this.materielForm.website,
-            price:this.materielForm.price,
-            remarks:this.materielForm.remarks,
-            factoryModel:this.materielForm.factoryModel
+            id: this.materielForm.id,
+            code: this.materielForm.code,
+            classifyId: this.materielForm.classifyId,
+            potting: this.materielForm.potting,
+            quantity: parseInt(this.materielForm.quantity),
+            model: this.materielForm.model,
+            brand: this.materielForm.brand,
+            supplier: this.materielForm.supplier,
+            website: this.materielForm.website,
+            price: this.materielForm.price,
+            remarks: this.materielForm.remarks,
+            factoryModel: this.materielForm.factoryModel,
+          };
+          const formDate = new FormData();
+          if (JSON.stringify(this.materielFile)!='{}') {
+            formDate.append("file", this.materielFile);
           }
-          this.$post("/materielLevel/modify", data).then((res) => {
+          for (let i in data) {
+            formDate.append(i, data[i]);
+          }
+          this.$postForm("/materielLevel/modify", formDate).then((res) => {
             if (res.code == 0) {
               this.$notify({
                 title: "成功",
@@ -549,6 +584,19 @@ export default {
         this.getDateList();
       });
     },
+    fileChange(file) {
+      console.log(file);
+      this.materielFile = file.raw;
+      this.imageUrl = URL.createObjectURL(file.raw);
+    },
+    beforeAvatarUpload(file) {
+      console.log(file.size);
+      const isLt2M = file.size / 1024 / 1024 / 10 < 2;
+      if (!isLt2M) {
+        this.$message.error("上传物料图片大小不能超过 200kb!");
+      }
+      return isLt2M;
+    },
   },
   created() {
     this.getClassifyList();
@@ -591,5 +639,16 @@ export default {
   .select-option {
     margin-bottom: 10px;
   }
+}
+
+.materiel-form /deep/ .avatar {
+  width: 100px !important;
+  height: 100px !important;
+}
+
+.materiel-form /deep/ .avatar-uploader-icon {
+  height: 100px !important;
+  width: 100px !important;
+  line-height: 100px !important;
 }
 </style>

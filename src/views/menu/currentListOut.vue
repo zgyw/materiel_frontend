@@ -46,7 +46,7 @@
                 node.label
               }}</span>
               <el-button
-                icon="el-icon-remove"
+                icon="el-icon-sold-out"
                 class="confirm"
                 type="text"
                 @click="openDialog('checkoutWare')"
@@ -93,10 +93,12 @@
           <el-table
             class="table-style"
             size="mini"
+            border
             stripe
             :data="materielList"
             :max-height="conHeight"
             :header-cell-style="{ 'background-color': '#e3e3e3' }"
+            :default-sort="{ prop: 'DValue', order: 'ascending' }"
           >
             <el-table-column
               type="index"
@@ -128,6 +130,18 @@
                   v-model="scope.row.outNum"
                   @change="changeOutNum(scope.row)"
                 ></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="差量" sortable prop="DValue">
+              <template slot-scope="scope">
+                <span
+                  v-if="scope.row.quantity - scope.row.outNum < 0"
+                  class="warClass"
+                  >{{ scope.row.quantity - scope.row.outNum }}</span
+                >
+                <span v-else class="sucClass">{{
+                  scope.row.quantity - scope.row.outNum
+                }}</span>
               </template>
             </el-table-column>
 
@@ -380,7 +394,6 @@
 
 <script>
 export default {
-  components: {},
   data() {
     return {
       labelPosition: "right",
@@ -430,7 +443,7 @@ export default {
       },
       materCode: "",
       materId: "",
-      ifTrue:false,
+      ifTrue: false,
     };
   },
   computed: {},
@@ -444,11 +457,11 @@ export default {
     },
     materielList: function (newVal) {
       if (this.materielList.length == 0) {
-        this.ifTrue = true
-      } else{
-        this.ifTrue = false
+        this.ifTrue = true;
+      } else {
+        this.ifTrue = false;
       }
-    }
+    },
   },
   mounted() {
     this.$nextTick(() => {
@@ -481,7 +494,6 @@ export default {
       };
       this.$post("/materielRecords/changeOutNum", data)
         .then((res) => {
-          console.log(res);
           if (res.code == 0) {
             this.$notify({
               title: "成功",
@@ -648,6 +660,10 @@ export default {
             this.checkOutWareDialog = false;
             this.orderId = "";
             this.getOrderList();
+          } else if (res.code == 900) {
+            this.$message.error(res.msg);
+            this.checkOutWareDialog = false;
+            this.getMaterielList();
           } else {
             this.$message.error(res.msg);
           }
@@ -681,24 +697,39 @@ export default {
         page: 0,
         size: 9999999,
       };
+      this.materielList = [];
       this.$get("/materielRecords/findCurOrder", param).then((res) => {
         if (res.code == 0) {
-          this.materielList = res.data.materielRecords;
+          let array = res.data.materielRecords;
+          for (let i = 0; i < array.length; i++) {
+            let obj = {
+              id: array[i].id,
+              code: array[i].code,
+              name: array[i].name,
+              model: array[i].model,
+              potting: array[i].potting,
+              brand: array[i].brand,
+              price: array[i].price,
+              outNum: array[i].outNum,
+              DValue: array[i].quantity - array[i].outNum,
+              quantity: array[i].quantity,
+              factoryModel: array[i].factoryModel,
+              orderId: array[i].orderId,
+              remarks: array[i].remarks,
+              type: array[i].type,
+            };
+            this.materielList.push(obj);
+          }
         }
       });
     },
     //获取到出库数量集合
     changeOutNum(row) {
-      this.ifTrue = false
-      if (!row.outNum){
+      this.ifTrue = false;
+      if (!row.outNum) {
         this.$message.error("出库数量不能为空");
-        this.ifTrue = true
-        return
-      }
-      if(row.outNum > row.quantity){
-        this.$message.error("出库数量不能大于库存");
-        this.ifTrue = true
-        return
+        this.ifTrue = true;
+        return;
       }
       let records = {
         id: row.id,
@@ -727,6 +758,10 @@ export default {
           this.materId = row.id;
           break;
         case "checkoutWare":
+          if (this.materielList.length == 0) {
+            this.$message.error("订单下没有要出库的物料!!!");
+            return;
+          }
           this.checkOutWareDialog = true;
           break;
         case "importFile":
@@ -814,8 +849,6 @@ export default {
     exportTemplate() {
       this.$getFile("/orderRecords/exportTemplate")
         .then((res) => {
-          console.log(res);
-          console.log(res.data);
           const link = document.createElement("a");
           const blob = new Blob([res.data], {
             type:
@@ -868,7 +901,7 @@ export default {
         .catch((err) => {
           this.$message.error("导入文件出错");
         });
-        this.isDialogImport = false;
+      this.isDialogImport = false;
     },
   },
   created() {
@@ -989,10 +1022,6 @@ export default {
   text-overflow: ellipsis;
 }
 
-.table-style {
-  padding: 1px 0;
-}
-
 // .edit-tooltip {
 //   float: left;
 // }
@@ -1022,6 +1051,15 @@ export default {
       width: 65px;
     }
   }
+}
+
+.warClass {
+  color: #f56c6c;
+  font-size: 14px;
+}
+.sucClass {
+  color: #67c23a;
+  font-size: 14px;
 }
 </style>
 

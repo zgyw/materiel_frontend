@@ -29,57 +29,57 @@ const router = new Router({
         path: '/Home/material',
         name: 'material',
         component: () => import('@/views/menu/material.vue'),
-        meta: {
-          isRouter: true
-        }
+        // meta: {
+        //   keepAlive: true //是否需要缓存默认是false
+        // }
       },
       {
         path: '/Home/NewMaterial',
         name: 'NewMaterial',
         component: () => import('@/views/menu/NewMaterial.vue'),
-        meta: {
-          isRouter: true
-        }
+        // meta: {
+        //   keepAlive: true //是否需要缓存默认是false
+        // }
       },
       {
         path: '/Home/currentListIn',
         name: 'currentListIn',
         component: () => import('@/views/menu/currentListIn.vue'),
-        meta: {
-          isRouter: true
-        }
+        // meta: {
+        //   keepAlive: true //是否需要缓存默认是false
+        // }
       },
       {
         path: '/Home/listRecordIn',
         name: 'listRecordIn',
         component: () => import('@/views/menu/listRecordIn.vue'),
-        meta: {
-          isRouter: true
-        }
+        // meta: {
+        //   keepAlive: true //是否需要缓存默认是false
+        // }
       },
       {
         path: '/Home/currentListOut',
         name: 'currentListOut',
         component: () => import('@/views/menu/currentListOut.vue'),
-        meta: {
-          isRouter: true
-        }
+        // meta: {
+        //   keepAlive: true //是否需要缓存默认是false
+        // }
       },
       {
         path: '/Home/listRecordOut',
         name: 'listRecordOut',
         component: () => import('@/views/menu/listRecordOut.vue'),
-        meta: {
-          isRouter: true
-        }
+        // meta: {
+        //   keepAlive: true //是否需要缓存默认是false
+        // }
       },
       {
         path: '/Home/classification',
         name: 'classification',
         component: () => import('@/views/menu/classification.vue'),
-        meta: {
-          isRouter: true
-        }
+        // meta: {
+        //   keepAlive: true //是否需要缓存默认是false
+        // }
       },
       // 路由匹配失败时，跳转到 404 页面 
       {
@@ -93,13 +93,13 @@ const router = new Router({
   ],
   mode: 'history', // 用于去除地址中的'#'
   scrollBehavior: () => ({ y: 0 }), // scrollBehavior 用于定义路由切换时，页面滚动。
-  isAddDynamicMenuRoutes: false
+  // isAddDynamicMenuRoutes: false
 })
 
 router.beforeEach((to, from, next) => {
   var uuid = getCookie("uuid");
   if (to.matched.length === 0) {
-    from.name ? next(from.name) : next('/home')
+    from.name ? next({ name: from.name }) : next('/home');
   } else {
     if (uuid) {
       next();

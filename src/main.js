@@ -9,6 +9,7 @@ import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css';
 import i18n from '@/i18n/index.js';
 import less from 'less'
+import './assets/index.less'
 import {get,post,postForm,getFile} from './util/http'
 Vue.prototype.$get = get
 Vue.prototype.$post = post
