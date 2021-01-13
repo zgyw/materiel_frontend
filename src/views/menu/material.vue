@@ -58,6 +58,7 @@
         <el-table
           :data="materielDate"
           :max-height="conHeight"
+          size="mini"
           border
           stripe
           @selection-change="handleSelectionChange"

@@ -17,6 +17,7 @@
       <div class="record-table">
         <el-table
           border
+          size="mini"
           stripe
           :data="orderDate"
           :max-height="conHeight"

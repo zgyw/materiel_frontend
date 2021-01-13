@@ -17,6 +17,7 @@
         <el-table
           :data="orderDate"
           border
+          size="mini"
           stripe
           :max-height="conHeight"
           @expand-change="expandChange"
