@@ -133,7 +133,7 @@
       >
         <el-form-item
           prop="name"
-          label="大类名称："
+          label="大类名称"
           :rules="[
             { required: true, message: '请输入大类名称', trigger: 'blur' },
           ]"
@@ -173,14 +173,14 @@
       >
         <el-form-item
           prop="name"
-          label="子类名称:"
+          label="子类名称"
           :rules="[
             { required: true, message: '请输入子类名称', trigger: 'blur' },
           ]"
         >
           <el-input style="width: 80%" v-model.trim="classForm.name"></el-input>
         </el-form-item>
-        <el-form-item prop="remarks" label="子类描述:">
+        <el-form-item prop="remarks" label="子类描述">
           <el-input
             type="textarea"
             style="width: 80%"
@@ -417,7 +417,7 @@ export default {
           });
           this.getClassifyList();
         } else {
-          this.$notify.error(res.msg);
+          this.$message.error(res.msg);
         }
       });
       this.classForm.id = "";
@@ -623,7 +623,7 @@ export default {
         right: 0;
         top: 0;
         padding: 0.5rem;
-        border-bottom: 1px solid @table-border;
+        // border-bottom: 1px solid @table-border;
         line-height: 2rem;
       }
       .var-list {
@@ -663,9 +663,9 @@ export default {
   text-align: left;
   display: block;
   width: 100%;
-  overflow: hidden;
+  // overflow: hidden;
   white-space: nowrap;
-  text-overflow: ellipsis;
+  // text-overflow: ellipsis;
   padding-left: 5px;
 }
 

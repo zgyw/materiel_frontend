@@ -2,22 +2,17 @@
   <div ref="conBox" style="height: 100%">
     <div class="content-all">
       <div class="content-first">
-        <el-select
-          v-model="classifyId"
+        <el-cascader
+          v-model="value"
           placeholder="请选择分类"
           clearable
           filterable
-          @change="classifyChange"
           style="float: left"
-        >
-          <el-option
-            v-for="item in classificationOptions"
-            :key="item.id"
-            :label="item.name"
-            :value="item.id"
-          ></el-option>
-        </el-select>
-
+          :show-all-levels="false"
+          @change="classifyChange"
+          :options="classificationOptions"
+          :props="{ expandTrigger: 'hover', label: 'name', value: 'id' }"
+        ></el-cascader>
         <el-input
           v-model.trim="content"
           suffix-icon="el-icon-search"
@@ -80,7 +75,9 @@
           <el-table-column prop="brand" label="品牌"></el-table-column>
           <el-table-column prop="price" label="单价(元)"></el-table-column>
           <el-table-column prop="quantity" label="库存数量"></el-table-column>
-          <el-table-column prop="remarks" label="描述(规格)"></el-table-column>
+          <el-table-column prop="supplier" label="供应商信息" show-overflow-tooltip></el-table-column>
+          <el-table-column prop="remarks" label="描述(规格)" show-overflow-tooltip></el-table-column>
+          <el-table-column prop="note" label="备注" show-overflow-tooltip></el-table-column>
           <el-table-column label="操作" width="125px">
             <template slot-scope="scope">
               <el-tooltip
@@ -119,11 +116,11 @@
       </div>
 
       <!-- 分页 -->
-      <div class="block" ref="pageBox" style="margin-top: 20px; float: right">
+      <div class="block" ref="pageBox" style="margin-top: 10px; float: right">
         <el-pagination
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
-          :current-page="currentPage"
+          :current-page.sync="currentPage"
           :page-sizes="[10, 20, 50]"
           :page-size="currPageSize"
           layout="total, sizes, prev, pager, next, jumper"
@@ -173,78 +170,81 @@
       <el-form
         class="materiel-form"
         :label-position="labelPosition"
-        label-width="80px"
+        label-width="90px"
         :model="materielForm"
         :rules="materielRules"
         ref="materielForm"
       >
         <el-row>
           <el-col :span="12">
-            <el-form-item label="编码:" prop="code">
+            <el-form-item label="编码" prop="code">
               <el-input readonly v-model="materielForm.code"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="分类:" prop="classifyId">
-              <el-select
-                v-model="materielForm.classifyId"
+            <el-form-item label="分类" prop="classifyId">
+              <el-cascader
+                v-model="valueDetail"
                 placeholder="请选择分类"
-              >
-                <el-option
-                  v-for="item in classificationOptions"
-                  :key="item.id"
-                  :label="item.name"
-                  :value="item.id"
-                ></el-option>
-              </el-select>
+                clearable
+                filterable
+                @change="classifyChange2"
+                :show-all-levels="false"
+                :options="classificationOptions"
+                :props="{ expandTrigger: 'hover', label: 'name', value: 'id' }"
+              ></el-cascader>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="封装:" prop="potting">
-              <el-input v-model="materielForm.potting"></el-input>
+            <el-form-item label="数量" prop="quantity">
+              <el-input readonly v-model="materielForm.quantity"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="厂家型号:" prop="factoryModel">
+            <el-form-item label="厂家型号" prop="factoryModel">
               <el-input v-model="materielForm.factoryModel"></el-input>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="数量:" prop="quantity">
-              <el-input v-model="materielForm.quantity"></el-input>
+            <el-form-item label="封装" prop="potting">
+              <el-input v-model="materielForm.potting"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="型号:" prop="model">
+            <el-form-item label="型号" prop="model">
               <el-input v-model="materielForm.model"></el-input>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="价格:" prop="price">
+            <el-form-item label="价格" prop="price">
               <el-input v-model="materielForm.price"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="供应商:" prop="supplier">
-              <el-input v-model="materielForm.supplier"></el-input>
+            <el-form-item label="品牌" prop="brand">
+              <el-input v-model="materielForm.brand"></el-input>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
           <div style="width: 50%; float: left">
-            <el-form-item label="品牌:" prop="brand">
-              <el-input v-model="materielForm.brand"></el-input>
+            <el-form-item label="供应商" prop="supplier">
+              <el-input
+                type="textarea"
+                :rows="5"
+                v-model="materielForm.supplier"
+              ></el-input>
             </el-form-item>
 
-            <el-form-item label="网址:" prop="website">
+            <!-- <el-form-item label="网址" prop="website">
               <el-input v-model="materielForm.website"></el-input>
-            </el-form-item>
+            </el-form-item> -->
           </div>
           <div style="width: 50%; float: right">
             <el-form-item label="图片" prop="photo" class="inline-input-width">
@@ -269,12 +269,20 @@
           </div>
         </el-row>
 
-        <el-form-item label="描述:" prop="remarks">
+        <el-form-item label="描述(规格)" prop="remarks">
           <el-input
             type="textarea"
             :rows="3"
-            placeholder="物料备注"
+            placeholder="物料规格描述"
             v-model="materielForm.remarks"
+          ></el-input>
+        </el-form-item>
+         <el-form-item label="备注" prop="note">
+          <el-input
+            type="textarea"
+            :rows="3"
+            placeholder="物料备注描述"
+            v-model="materielForm.note"
           ></el-input>
         </el-form-item>
         <div style="text-align: right">
@@ -325,7 +333,7 @@ export default {
       orderId: "", //订单id
       orderArr: [], //订单集合
       currentPage: 1,
-      currPageSize: 10,
+      currPageSize: 20,
       totalMateriel: 0, //总量
       content: "", //搜索框内容
       //库存数组
@@ -343,8 +351,8 @@ export default {
         model: "", //型号
         brand: "", //品牌
         supplier: "", //供应商
-        website: "", //网址
-        remarks: "", //备注
+        note: "", //备注
+        remarks: "", //规格(描述)
         price: "", //单价
         photo: "", //图片地址
       },
@@ -361,14 +369,16 @@ export default {
         ],
       },
       imageUrl: "", //图片
-      materielFile:"",//物料图片文件
+      materielFile: "", //物料图片文件
+      value: [],
+      valueDetail: [],
     };
   },
   computed: {},
   watch: {},
   mounted() {
     this.$nextTick(() => {
-      this.conHeight = this.$refs.conBox.offsetHeight - 55 - 55 - 36;
+      this.conHeight = this.$refs.conBox.offsetHeight - 120;
     });
     window.addEventListener("resize", () => {
       this.$nextTick(() => {
@@ -385,7 +395,6 @@ export default {
         classifyId: this.classifyId,
         content: this.content,
       };
-      this.totalMateriel = 0;
       this.materielDate = [];
       this.$get("/materielLevel/pageList", param).then((res) => {
         if (res.code == 0) {
@@ -403,16 +412,27 @@ export default {
             let obj = {};
             obj.id = res.data[i].id;
             obj.name = res.data[i].name;
+            obj.children = res.data[i].children;
             this.classificationOptions.push(obj);
           }
-        } else {
-          this.classificationOptions = [];
         }
       });
     },
     // 下拉框改变触发
-    classifyChange() {
+    classifyChange(value) {
+      console.log(value);
+      this.classifyId = "";
+      if (value.length == 2) {
+        this.classifyId = value[1];
+      }
       this.getDateList();
+    },
+    classifyChange2(value) {
+      console.log(value);
+      this.materielForm.classifyId;
+      if (value.length == 2) {
+        this.materielForm.classifyId = value[1];
+      }
     },
     //当前页改变时触发
     handleCurrentChange(val) {
@@ -433,11 +453,11 @@ export default {
           this.getOrderByType();
           break;
         case "materielOpen":
-          this.imageUrl = ""
+          this.imageUrl = "";
           this.detailMeteriel(row.id);
           this.isDialogMaterielDeatil = true;
           if (row.photo) {
-            this.getPhoto(row.id);
+            this.getPhoto(row.photo);
           }
           break;
         case "deleMateriel":
@@ -480,15 +500,20 @@ export default {
       let param = {
         id: data,
       };
+      this.valueDetail = [];
       this.$get("/materielLevel/detail", param).then((res) => {
         if (res.code == 0) {
+          let obj = [];
+          obj.push(res.data.groupId);
+          obj.push(res.data.classifyId);
+          this.valueDetail = obj;
           this.materielForm = res.data;
         }
       });
     },
     getPhoto(id) {
       let param = {
-        id: id,
+        photoPath: id,
       };
       this.$getFile("/materielLevel/getPhoto", param).then((res) => {
         console.log(res);
@@ -503,22 +528,45 @@ export default {
             this.$message.error("数量只能是数值类型");
             return;
           }
+          if (this.valueDetail.length == 0) {
+            this.$message.error("分类不能为空");
+            return;
+          }
           let data = {
             id: this.materielForm.id,
             code: this.materielForm.code,
-            classifyId: this.materielForm.classifyId,
-            potting: this.materielForm.potting,
+            classifyId: this.valueDetail[1],
+            potting:
+              this.materielForm.potting == null
+                ? ""
+                : this.materielForm.potting,
             quantity: parseInt(this.materielForm.quantity),
-            model: this.materielForm.model,
-            brand: this.materielForm.brand,
-            supplier: this.materielForm.supplier,
-            website: this.materielForm.website,
-            price: this.materielForm.price,
-            remarks: this.materielForm.remarks,
-            factoryModel: this.materielForm.factoryModel,
+            model:
+              this.materielForm.model == null ? "" : this.materielForm.model,
+            brand:
+              this.materielForm.brand == null ? "" : this.materielForm.brand,
+            supplier:
+              this.materielForm.supplier == null
+                ? ""
+                : this.materielForm.supplier,
+            note:
+              this.materielForm.note == null
+                ? ""
+                : this.materielForm.note,
+            price:
+              this.materielForm.price == null ? "" : this.materielForm.price,
+            remarks:
+              this.materielForm.remarks == null
+                ? ""
+                : this.materielForm.remarks,
+            factoryModel:
+              this.materielForm.factoryModel == null
+                ? ""
+                : this.materielForm.factoryModel,
           };
           const formDate = new FormData();
-          if (JSON.stringify(this.materielFile)!='{}') {
+          console.log(this.materielFile)
+          if (JSON.stringify(this.materielFile) != "{}") {
             formDate.append("file", this.materielFile);
           }
           for (let i in data) {
@@ -612,7 +660,7 @@ export default {
   height: 100%;
   overflow-y: auto;
   .material-table {
-    margin-top: 20px;
+    margin-top: 10px;
   }
   .content-first {
     height: 45px;
@@ -643,13 +691,17 @@ export default {
 }
 
 .materiel-form /deep/ .avatar {
-  width: 100px !important;
-  height: 100px !important;
+  width: 115px !important;
+  height: 115px !important;
 }
 
 .materiel-form /deep/ .avatar-uploader-icon {
-  height: 100px !important;
-  width: 100px !important;
-  line-height: 100px !important;
+  height: 115px !important;
+  width: 115px !important;
+  line-height: 115px !important;
+}
+
+.el-cascader {
+  display: inline;
 }
 </style>

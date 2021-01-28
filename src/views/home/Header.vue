@@ -181,4 +181,8 @@ export default {
   font-size: 16px;
   color: whitesmoke !important;
 }
+
+.el-menu-item:hover{
+  background-color: #3B77E3 !important;
+}
 </style>

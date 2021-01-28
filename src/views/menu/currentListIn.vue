@@ -115,8 +115,14 @@
             ></el-table-column>
             <el-table-column property="price" label="单价"></el-table-column>
             <el-table-column
+              property="supplier"
+              label="供应商信息"
+              show-overflow-tooltip
+            ></el-table-column>
+            <el-table-column
               property="remarks"
               label="描述(规格)"
+              show-overflow-tooltip
             ></el-table-column>
             <el-table-column
               property="quantity"
@@ -131,6 +137,11 @@
                 ></el-input>
               </template>
             </el-table-column>
+            <el-table-column
+              property="note"
+              label="备注"
+              show-overflow-tooltip
+            ></el-table-column>
 
             <el-table-column label="操作" width="125px">
               <template slot-scope="scope">
@@ -176,14 +187,14 @@
       <el-form ref="orderForm" :model="orderForm" label-width="120px">
         <el-form-item
           prop="name"
-          label="订单名称:"
+          label="订单名称"
           :rules="[
             { required: true, message: '请输入订单名称', trigger: 'blur' },
           ]"
         >
           <el-input style="width: 80%" v-model.trim="orderForm.name"></el-input>
         </el-form-item>
-        <el-form-item prop="remarks" label="订单描述:">
+        <el-form-item prop="remarks" label="订单描述">
           <el-input
             type="textarea"
             style="width: 80%"
@@ -226,44 +237,8 @@
       >
         <el-row>
           <el-col :span="12">
-            <el-form-item label="编码:" prop="code">
+            <el-form-item label="编码" prop="code">
               <el-input readonly v-model="materielForm.code"></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="名称:" prop="name">
-              <el-input readonly v-model="materielForm.name"></el-input>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="12">
-            <el-form-item label="封装:" prop="potting">
-              <el-input readonly v-model="materielForm.potting"></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="厂家型号:" prop="factoryModel">
-              <el-input readonly v-model="materielForm.factoryModel"></el-input>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="12">
-            <el-form-item label="价格:" prop="price">
-              <el-input readonly v-model="materielForm.price"></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="型号:" prop="model">
-              <el-input readonly v-model="materielForm.model"></el-input>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="12">
-            <el-form-item label="库存数量:" prop="quantity">
-              <el-input readonly v-model="materielForm.quantity"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -275,20 +250,95 @@
                   trigger: 'blur',
                 },
               ]"
-              label="入库数量:"
+              label="入库数量"
               prop="inNum"
             >
               <el-input v-model="materielForm.inNum"></el-input>
             </el-form-item>
           </el-col>
         </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="名称" prop="name">
+              <el-input readonly v-model="materielForm.name"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="封装" prop="potting">
+              <el-input readonly v-model="materielForm.potting"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="厂家型号" prop="factoryModel">
+              <el-input readonly v-model="materielForm.factoryModel"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="型号" prop="model">
+              <el-input readonly v-model="materielForm.model"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="库存数量" prop="quantity">
+              <el-input readonly v-model="materielForm.quantity"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="价格" prop="price">
+              <el-input readonly v-model="materielForm.price"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <div style="width: 50%; float: left">
+            <el-form-item label="供应商" prop="supplier">
+              <el-input
+                type="textarea"
+                :rows="5"
+                readonly
+                v-model="materielForm.supplier"
+              ></el-input>
+            </el-form-item>
 
-        <el-form-item label="描述:" prop="remarks">
+            <!-- <el-form-item label="网址" prop="website">
+              <el-input readonly v-model="materielForm.website"></el-input>
+            </el-form-item> -->
+          </div>
+          <div style="width: 50%; float: right">
+            <el-form-item label="图片" prop="photo" class="inline-input-width">
+              <div class="img">
+                <img
+                  v-if="imageUrl"
+                  :src="imageUrl"
+                  width="100"
+                  height="100"
+                  class="avatar"
+                />
+                <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+              </div>
+            </el-form-item>
+          </div>
+        </el-row>
+
+        <el-form-item label="描述(规格)" prop="remarks">
           <el-input
             type="textarea"
             :rows="2"
             placeholder="描述规格"
+            readonly
             v-model="materielForm.remarks"
+          ></el-input>
+        </el-form-item>
+        <el-form-item label="备注" prop="note">
+          <el-input
+            type="textarea"
+            :rows="2"
+            placeholder="物料备注描述"
+            v-model="materielForm.note"
           ></el-input>
         </el-form-item>
         <div style="text-align: right">
@@ -429,14 +479,7 @@ export default {
       importForm: {
         file: "",
       },
-
-      delIds: [],
-      // 选中的变量
-      selectedVariate: {},
-      // 存储请求到的变量
-      variatesList: {},
-      // 父级分组id
-      parentId: 0,
+      imageUrl: "",
     };
   },
   computed: {},
@@ -616,6 +659,7 @@ export default {
           });
           this.closeDialog();
           this.getOrderList();
+          this.materielList = [];
           this.orderForm.id = "";
           this.orderForm.name = "";
           this.orderForm.remarks = "";
@@ -647,6 +691,7 @@ export default {
             this.putInWareDialog = false;
             this.orderId = "";
             this.getOrderList();
+            this.materielList = [];
           } else {
             this.$message.error(res.msg);
           }
@@ -678,13 +723,11 @@ export default {
       let param = {
         orderId: this.orderId,
         content: this.content,
-        page: 0,
-        size: 9999999,
       };
-      this.materielList = []
+      this.materielList = [];
       this.$get("/materielRecords/findCurOrder", param).then((res) => {
         if (res.code == 0) {
-          this.materielList = res.data.materielRecords;
+          this.materielList = res.data;
         }
       });
     },
@@ -732,37 +775,40 @@ export default {
       this.$get("/materielRecords/detail", param).then((res) => {
         if (res.code == 0) {
           this.materielForm = res.data;
+          if (res.data.photo) {
+            this.getPhoto(res.data.photo);
+          }
         }
       });
     },
     //修改物料
     modifyMateriel(materielForm) {
-      this.$refs[materielForm]
-        .validate((valid) => {
-          if (valid) {
-            if (isNaN(this.materielForm.inNum)) {
-              this.$message.error("入库数量只能是数值类型");
-              return;
-            }
-            let data = {
-              id: this.materielForm.id,
-              remarks: this.materielForm.remarks,
-              inNum: this.materielForm.inNum,
-              name: this.materielForm.name,
-              code: this.materielForm.code,
-              potting: this.materielForm.potting,
-              quantity: parseInt(this.materielForm.quantity),
-              model: this.materielForm.model,
-              brand: this.materielForm.brand,
-              supplier: this.materielForm.supplier,
-              website: this.materielForm.website,
-              price: this.materielForm.price,
-              remarks: this.materielForm.remarks,
-              orderId: this.orderId,
-              factoryModel: this.materielForm.factoryModel,
-              type: 1,
-            };
-            this.$post("/materielRecords/modify", data).then((res) => {
+      this.$refs[materielForm].validate((valid) => {
+        if (valid) {
+          if (isNaN(this.materielForm.inNum)) {
+            this.$message.error("入库数量只能是数值类型");
+            return;
+          }
+          let data = {
+            id: this.materielForm.id,
+            remarks: this.materielForm.remarks,
+            inNum: this.materielForm.inNum,
+            name: this.materielForm.name,
+            code: this.materielForm.code,
+            potting: this.materielForm.potting,
+            quantity: parseInt(this.materielForm.quantity),
+            model: this.materielForm.model,
+            brand: this.materielForm.brand,
+            supplier: this.materielForm.supplier,
+            note: this.materielForm.note,
+            price: this.materielForm.price,
+            remarks: this.materielForm.remarks,
+            orderId: this.orderId,
+            factoryModel: this.materielForm.factoryModel,
+            type: 1,
+          };
+          this.$post("/materielRecords/modify", data)
+            .then((res) => {
               if (res.code == 0) {
                 this.$notify({
                   title: "成功",
@@ -774,12 +820,12 @@ export default {
               } else {
                 this.$message.error(res.msg);
               }
+            })
+            .catch((err) => {
+              this.$message.error("修改失败");
             });
-          }
-        })
-        .catch((err) => {
-          this.$message.error("修改失败");
-        });
+        }
+      });
     },
     //删除物料
     delMaterial() {
@@ -847,12 +893,22 @@ export default {
           } else {
             this.$message.error(res.msg);
           }
-        }).catch(err => {
-          this.$message.error("导入订单错误",);
         })
+        .catch((err) => {
+          this.$message.error("导入订单错误");
+        });
     },
     fileChangeT(file) {
       this.importForm.file = file.raw;
+    },
+    getPhoto(id) {
+      let param = {
+        photoPath: id,
+      };
+      this.$getFile("/materielLevel/getPhoto", param).then((res) => {
+        console.log(res);
+        this.imageUrl = window.URL.createObjectURL(res.data);
+      });
     },
   },
   created() {
@@ -926,7 +982,7 @@ export default {
         right: 0;
         top: 0;
         padding: 0.5rem;
-        border-bottom: 1px solid @table-border;
+        // border-bottom: 1px solid @table-border;
         line-height: 2rem;
       }
       .var-list {
@@ -998,6 +1054,27 @@ export default {
       width: 65px;
     }
   }
+}
+
+.detai-dialog /deep/ .img {
+  width: 115px !important;
+  height: 115px !important;
+  line-height: 115px !important;
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px !important;
+  position: relative !important;
+}
+
+.detai-dialog /deep/ .avatar {
+  width: 115px !important;
+  height: 115px !important;
+  border-radius: 6px !important;
+  position: relative !important;
+}
+.detai-dialog /deep/ .avatar-uploader-icon {
+  height: 115px !important;
+  width: 115px !important;
+  line-height: 115px !important;
 }
 </style>
 

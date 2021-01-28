@@ -2,14 +2,14 @@
   <div ref="conBox" style="height: 100%">
     <div class="content-all">
       <div class="title-box">
-        <el-input
+        <!-- <el-input
           v-model.trim="content"
           suffix-icon="el-icon-search"
           placeholder="搜索内容"
           clearable
           @change="getOrderList"
           style="width: 300px; margin-left: 10px"
-        ></el-input>
+        ></el-input> -->
       </div>
 
       <!-- 表格 -->
@@ -61,16 +61,27 @@
               ></el-table-column>
               <el-table-column property="price" label="单价"></el-table-column>
               <el-table-column
-                property="remarks"
-                label="描述(规格)"
+                property="supplier"
+                label="供应商信息"
+                show-overflow-tooltip
               ></el-table-column>
               <el-table-column
+                property="remarks"
+                label="描述(规格)"
+                show-overflow-tooltip
+              ></el-table-column>
+              <!-- <el-table-column
                 property="quantity"
                 label="库存数量"
-              ></el-table-column>
+              ></el-table-column> -->
               <el-table-column
                 label="入库数量"
                 property="inNum"
+              ></el-table-column>
+              <el-table-column
+                property="note"
+                label="备注"
+                show-overflow-tooltip
               ></el-table-column>
             </el-table>
           </el-table-column>
@@ -121,7 +132,7 @@
         >
           <el-form-item
             prop="name"
-            label="订单名称:"
+            label="订单名称"
             :rules="[
               { required: true, message: '请输入订单名称', trigger: 'blur' },
             ]"
@@ -132,7 +143,7 @@
               v-model.trim="orderForm.name"
             ></el-input>
           </el-form-item>
-          <el-form-item prop="remarks" label="订单描述:">
+          <el-form-item prop="remarks" label="订单描述">
             <el-input
               readonly
               type="textarea"
@@ -140,7 +151,7 @@
               v-model.trim="orderForm.remarks"
             ></el-input>
           </el-form-item>
-          <el-form-item prop="remarks" label="入库时间:">
+          <el-form-item prop="remarks" label="入库时间">
             <span>{{ orderForm.inTime }}</span>
           </el-form-item>
         </el-form>
@@ -154,7 +165,7 @@ export default {
   components: {},
   data() {
     return {
-      currPageSize: 10,
+      currPageSize: 20,
       conHeight: 0,
       orderDate: [],
       currentPage: 1,
@@ -167,19 +178,19 @@ export default {
         inTime: "",
       },
       orderDetail: false,
-      materielList:[],//订单下物料数组
-      expands:[],
+      materielList: [], //订单下物料数组
+      expands: [],
     };
   },
   computed: {},
   watch: {},
   mounted() {
     this.$nextTick(() => {
-      this.conHeight = this.$refs.conBox.offsetHeight - 180;
+      this.conHeight = this.$refs.conBox.offsetHeight - 150;
     });
     window.addEventListener("resize", () => {
       this.$nextTick(() => {
-        this.conHeight = this.$refs.conBox.offsetHeight - 180;
+        this.conHeight = this.$refs.conBox.offsetHeight - 150;
       });
     });
   },
@@ -204,7 +215,6 @@ export default {
         size: this.currPageSize,
       };
       this.orderDate = [];
-      this.total = 0;
       this.$get("/orderRecords/pageList", param).then((res) => {
         if (res.code == 0) {
           this.total = res.data.total;
@@ -230,42 +240,39 @@ export default {
       this.orderDetail = true;
       this.getOrderInfo(row.id);
     },
-    getMaterielList(row) {
-      let param = {
-        orderId:row.id,
-        content:"",
-        page:0,
-        size:999999999
-      }
-      this.$get("/materielRecords/findCurOrder",param).then(res => {
-        if (res.code == 0) {
-          this.materielList = []
-          for (let i = 0; i < res.data.materielRecords.length; i++) {
-            let obj = res.data.materielRecords[i];
-            this.materielList.push(obj)
-          }
-          console.log(this.materielList)
-        }
-      })
-
-    },
+    // getMaterielList(row) {
+    //   let param = {
+    //     orderId:row.id,
+    //     content:"",
+    //   }
+    //   this.$get("/materielRecords/findCurOrder",param).then(res => {
+    //     if (res.code == 0) {
+    //       this.materielList = []
+    //       for (let i = 0; i < res.data.materielRecords.length; i++) {
+    //         let obj = res.data.materielRecords[i];
+    //         this.materielList.push(obj)
+    //       }
+    //       console.log(this.materielList)
+    //     }
+    //   })
+    // },
     getRowkeys(row) {
-      return row.id
+      return row.id;
     },
-    expandChange(row,expandedRows) {
-      this.expands = []
+    expandChange(row, expandedRows) {
+      this.expands = [];
       if (expandedRows.length) {
         this.materielList = [];
         if (row) {
-          this.expands.push(row.id)
-          this.materielList = row.materielRecords
+          this.expands.push(row.id);
+          this.materielList = row.materielRecords;
         }
       }
-    }
+    },
   },
   created() {
     this.getOrderList();
-  }
+  },
 };
 </script>
 
@@ -278,18 +285,18 @@ export default {
   .record-table {
     background-color: rgba(67, 92, 112);
     width: 99%;
-    margin-top: 20px;
+    // margin-top: 20px;
   }
 }
 
 .title-box {
-  height: 3rem;
+  height: 2rem;
   position: relative;
   left: 0;
   right: 0;
   top: 0;
-  border-bottom: 1px solid @table-border;
-  line-height: 2rem;
+  // border-bottom: 1px solid @table-border;
+  line-height: 1rem;
   text-align: left;
 }
 
